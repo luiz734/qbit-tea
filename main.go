@@ -1,12 +1,9 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"fmt"
 	"os"
 	"qbit-tea/input"
-	"qbit-tea/transmission"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -18,47 +15,8 @@ func checkError(err error) {
 	}
 }
 
-type Entry struct {
-	Id       string
-	Filename string
-	Status   string
-}
-
-func NewEntry(id string, filename string, status string) Entry {
-	return Entry{
-		Id:       id,
-		Filename: filename,
-		Status:   status,
-	}
-}
-
-func ParseEntries(output []byte) []Entry {
-
-	scanner := bufio.NewScanner(bytes.NewReader(output))
-
-	var lines []string
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-
-	// remove header and "sum" line
-	if len(lines) > 2 {
-		lines = lines[1 : len(lines)-1]
-	}
-
-	var entries []Entry
-	for _, line := range lines {
-		fields := strings.Fields(line)
-		fileName := strings.Join(fields[9:], " ")
-		_ = fileName
-		entries = append(entries, NewEntry(fields[0], fileName, fields[8]))
-	}
-
-	return entries
-}
-
 type model struct {
-	Entries []Entry
+	Entries []input.Entry
 	cursor  int
 	addMode bool
 }
@@ -76,15 +34,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case input.MsgUpdate:
 		// m.Entries[m.cursor].Filename += msg.Output
-		output, err := transmission.TransmissionList()
-		checkError(err)
-		m.Entries = ParseEntries(output)
+		// output, err := transmission.TransmissionList()
+		// checkError(err)
+		m.Entries = msg.Entries
 		return m, nil
 
-    case input.MsgAdd:
+	case input.MsgAdd:
 		m.Entries[m.cursor].Filename += msg.Foo
-        return m, nil
-
+		return m, nil
 
 	case input.MsgMoveCursor:
 		newPos := m.cursor + msg.Movement
@@ -120,10 +77,19 @@ func (m model) View() string {
 }
 
 func main() {
-	output, err := transmission.TransmissionList()
-	checkError(err)
+	// output, err := transmission.TransmissionList()
+	// checkError(err)
 
-	if _, err := tea.NewProgram(model{Entries: ParseEntries(output)}).Run(); err != nil {
+	if len(os.Getenv("DEBUG")) > 0 {
+		f, err := tea.LogToFile("debug.log", "debug")
+		if err != nil {
+			fmt.Println("fatal:", err)
+			os.Exit(1)
+		}
+		defer f.Close()
+	}
+
+	if _, err := tea.NewProgram(model{}).Run(); err != nil {
 		fmt.Printf("Uh oh, there was an error: %v\n", err)
 		os.Exit(1)
 	}

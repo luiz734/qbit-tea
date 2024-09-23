@@ -2,6 +2,7 @@ package input
 
 import (
 	"fmt"
+	"os/exec"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -35,9 +36,7 @@ func HelpMsg() string {
 	return output.String()
 }
 
-type MsgUpdate struct {
-	Output string
-}
+
 type MsgDefault struct{}
 
 type MsgMoveCursor struct {
@@ -55,12 +54,18 @@ func CmdMoveCursorDown() tea.Msg {
 	return MsgMoveCursor{1}
 }
 
-func CmdUpdate() tea.Msg {
-	return MsgUpdate{"done update"}
-}
+
 
 func CmdAdd() tea.Msg {
-	return MsgAdd{"added"}
+	// transmission-remote --add "url"
+	url := "magnet:?xt=urn:btih:6f1bde857b97b382f8841cdf3a42c530b3f4e34e&dn=archlinux-2024.09.01-x86_64.iso"
+	args := []string{"-a", url}
+	cmd := exec.Command("transmission-remote", args...)
+	stdout, err := cmd.Output()
+	if err != nil {
+		panic(err)
+	}
+	return MsgAdd{string(stdout)}
 }
 
 func CmdDefault() tea.Msg {

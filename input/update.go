@@ -1,8 +1,9 @@
-package main
+package input
 
 import (
 	"bufio"
 	"bytes"
+	"log"
 	"os/exec"
 	"strings"
 
@@ -34,6 +35,7 @@ func CmdUpdate() tea.Msg {
 	if err != nil {
 		panic(err)
 	}
+
 	return MsgUpdate{Entries: ParseEntries(stdout)}
 }
 
@@ -54,9 +56,10 @@ func ParseEntries(output []byte) []Entry {
 	var entries []Entry
 	for _, line := range lines {
 		fields := strings.Fields(line)
-		fileName := strings.Join(fields[9:], " ")
+        _=log.Default
+		fileName := strings.Join(fields[8:], " ")
 		_ = fileName
-		entries = append(entries, NewEntry(fields[0], fileName, fields[8]))
+		entries = append(entries, NewEntry(fields[0], fileName, fields[7]))
 	}
 
 	return entries
