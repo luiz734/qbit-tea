@@ -8,28 +8,29 @@ import (
 )
 
 type UserAction struct {
-	Shortcut    string
+	Shortcuts   []string
 	Description string
 	Command     tea.Cmd
 }
 
 var actionsMap = []UserAction{
-	{"a", "Add", CmdAdd},
-	{"u", "Update", CmdUpdate},
-	{"k", "Move Up", CmdMoveCursorUp},
-	{"j", "Move Down", CmdMoveCursorDown},
-	{"p", "Pause/Unpause", CmdDefault},
-	{"d", "Delete", CmdDefault},
-	{"x", "Delete ad emove files", CmdDefault},
-	{"q", "Quit", tea.Quit},
+	{[]string{"a"}, "Add", CmdAdd},
+	{[]string{"u"}, "Update", CmdUpdate},
+	{[]string{"k", "up"}, "Move Up", CmdMoveCursorUp},
+	{[]string{"j", "down"}, "Move Down", CmdMoveCursorDown},
+	{[]string{"p"}, "Pause/Unpause", CmdDefault},
+	{[]string{"d"}, "Delete", CmdDefault},
+	{[]string{"x"}, "Delete and remove files", CmdDefault},
+	{[]string{"q"}, "Quit", tea.Quit},
 }
 
 func HelpMsg() string {
 
 	var output strings.Builder
 	output.WriteString("---\n")
-	for _, d := range actionsMap {
-		output.WriteString(fmt.Sprintf("%-2s -> %s\n", d.Shortcut, d.Description))
+	for _, action := range actionsMap {
+		shortcuts := strings.Join(action.Shortcuts, ", ")
+		output.WriteString(fmt.Sprintf("%-8s -> %s\n", shortcuts, action.Description))
 	}
 	return output.String()
 }
@@ -71,9 +72,11 @@ func CmdInvalid() tea.Msg {
 }
 
 func ParseInput(msg string) tea.Cmd {
-	for _, a := range actionsMap {
-		if a.Shortcut == msg {
-			return a.Command
+	for _, action := range actionsMap {
+		for _, shorcut := range action.Shortcuts {
+			if shorcut == msg {
+				return action.Command
+			}
 		}
 	}
 	return CmdInvalid
