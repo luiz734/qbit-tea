@@ -22,6 +22,19 @@ func checkError(err error) {
 		panic(err)
 	}
 }
+func CmdAdd(m model) tea.Cmd {
+	return func() tea.Msg {
+        url := "magnet:?xt=urn:btih:6f1bde857b97b382f8841cdf3a42c530b3f4e34e&dn=archlinux-2024.09.01-x86_64.iso"
+        addCommand, err := transmission.NewAddCmdByMagnet(url)
+        checkError(err)
+        output, err := m.client.ExecuteAddCommand(addCommand)
+        log.Println(fmt.Sprintf("%s", output))
+        checkError(err)
+        return nil
+	}
+}
+
+type MsgAdd struct {}
 
 func CmdUpdate(m model) tea.Cmd {
 	return func() tea.Msg {
@@ -97,8 +110,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case input.MsgStart:
 		return m, nil
 
-	case input.MsgAdd:
-		m.Torrents[m.cursor].Name += msg.Foo
+	case MsgAdd:
+		// m.Torrents[m.cursor].Name += msg.Foo
 		return m, nil
 
 	case input.MsgMoveCursor:
@@ -118,6 +131,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, CmdToggle(m)
         case "d":
             return m, CmdRemove(m, false)
+        case "a":
+            return m, CmdAdd(m)
 		default:
 			return m, input.ParseInput(msg.String())
 		}
