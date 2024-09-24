@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/tubbebubbe/transmission"
 )
 
@@ -22,7 +23,11 @@ type Model struct {
 	cursor      int
 	addMode     bool
 
-	table table.Model
+	table      table.Model
+	windowSize struct {
+		Width  int
+		Height int
+	}
 }
 
 func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient) Model {
@@ -83,6 +88,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.table.SetCursor(m.cursor)
 		return m, nil
 
+	case tea.WindowSizeMsg:
+		m.windowSize = struct {
+			Width  int
+			Height int
+		}{msg.Width, msg.Height}
+		return m, nil
+		// prevWidth := 0
+		// for _, c := range m.table.Columns() {
+		// 	prevWidth += c.Width
+		// }
+		// cols := m.table.Columns()
+		// cols[2].Width = msg.Width - 20
+		// if cols[2].Width > 50 {
+		// 	cols[2].Width = 50
+		// }
+		// m.table.SetColumns(cols)
+		// log.Println(fmt.Sprintf("%s", m.table.Columns()[2]))
+		// return m, nil
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -106,7 +130,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	var output strings.Builder
 	timeoutSec := fmt.Sprintf("%d", (m.updateTimer.Timeout/1_000_000_000)+1)
-	output.WriteString(fmt.Sprintf("Updating in %s...\n", timeoutSec))
+	var style = lipgloss.NewStyle().
+		BorderStyle(lipgloss.RoundedBorder()).
+        Foreground(lipgloss.Color("#aaaaaa")).
+		Width(m.windowSize.Width - 2).
+		Align(lipgloss.Center)
+	timerOut := style.Render(fmt.Sprintf("Updating in %s...", timeoutSec))
+	output.WriteString(timerOut)
+	// output.WriteString()
 	output.WriteString(m.table.View())
 	return output.String()
 }
