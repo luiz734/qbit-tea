@@ -16,10 +16,10 @@ type UserAction struct {
 
 var actionsMap = []UserAction{
 	{[]string{"a"}, "Add", CmdAdd},
-	{[]string{"u"}, "Update", CmdUpdate},
+	// {[]string{"u"}, "Update", CmdUpdate},
 	{[]string{"k", "up"}, "Move Up", CmdMoveCursorUp},
 	{[]string{"j", "down"}, "Move Down", CmdMoveCursorDown},
-	{[]string{"p"}, "Pause/Unpause", CmdDefault},
+	// {[]string{"p"}, "Pause/Unpause", CmdStart()},
 	{[]string{"d"}, "Delete", CmdDefault},
 	{[]string{"x"}, "Delete and remove files", CmdDefault},
 	{[]string{"q"}, "Quit", tea.Quit},
@@ -35,7 +35,6 @@ func HelpMsg() string {
 	}
 	return output.String()
 }
-
 
 type MsgDefault struct{}
 
@@ -53,8 +52,6 @@ func CmdMoveCursorUp() tea.Msg {
 func CmdMoveCursorDown() tea.Msg {
 	return MsgMoveCursor{1}
 }
-
-
 
 func CmdAdd() tea.Msg {
 	// transmission-remote --add "url"

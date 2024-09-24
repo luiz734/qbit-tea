@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"qbit-tea/input"
 	"strings"
@@ -9,9 +10,12 @@ import (
 
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/tubbebubbe/transmission"
+	// "github.com/pyed/transmission"
 )
 
-var timeout = time.Second * 5.0
+var timeout = time.Second * 2.0
 
 func checkError(err error) {
 	if err != nil {
@@ -19,20 +23,47 @@ func checkError(err error) {
 	}
 }
 
+func CmdUpdate(m model) tea.Cmd {
+	return func() tea.Msg {
+		torrents, err := m.client.GetTorrents()
+		checkError(err)
+		return MsgUpdate{Torrents: torrents}
+	}
+}
+
+func CmdToggle(m model) tea.Cmd {
+	return func() tea.Msg {
+		torrent := m.Torrents[m.cursor]
+		switch torrent.Status {
+		case StatusStopped:
+			m.client.StartTorrent(torrent.ID)
+		case StatusDownloading, StatusSeeding:
+			m.client.StopTorrent(torrent.ID)
+		}
+		return MsgToggle{}
+	}
+}
+
+type MsgToggle struct{}
+
 type model struct {
+	client      *transmission.TransmissionClient
 	UpdateTimer timer.Model
-	Entries     []input.Entry
+	Torrents    transmission.Torrents
 	cursor      int
 	addMode     bool
 }
 
 func (m model) Init() tea.Cmd {
+	log.Printf(fmt.Sprintf("%s", m.Torrents))
 	return m.UpdateTimer.Init()
 }
 
 type actionMsg struct {
 	helpItem input.UserAction
 }
+
+type MsgUpdate struct{ Torrents transmission.Torrents }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -43,21 +74,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 
 	case timer.TimeoutMsg:
-        m.UpdateTimer.Timeout = timeout
+		m.UpdateTimer.Timeout = timeout
 		m.UpdateTimer.Init()
-		return m, input.CmdUpdate
+		return m, CmdUpdate(m)
 
-	case input.MsgUpdate:
-		m.Entries = msg.Entries
+	case MsgUpdate:
+		m.Torrents = msg.Torrents
+		return m, nil
+
+	case input.MsgStart:
 		return m, nil
 
 	case input.MsgAdd:
-		m.Entries[m.cursor].Filename += msg.Foo
+		m.Torrents[m.cursor].Name += msg.Foo
 		return m, nil
 
 	case input.MsgMoveCursor:
 		newPos := m.cursor + msg.Movement
-		if newPos >= 0 && newPos <= len(m.Entries)-1 {
+		if newPos >= 0 && newPos <= len(m.Torrents)-1 {
 			m.cursor = newPos
 		}
 		return m, nil
@@ -66,6 +100,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
+		case "u":
+			return m, CmdUpdate(m)
+		case "p":
+			return m, CmdToggle(m)
 		default:
 			return m, input.ParseInput(msg.String())
 		}
@@ -76,15 +114,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	var output strings.Builder
-	timeoutSec := fmt.Sprintf("%d", (m.UpdateTimer.Timeout / 1_000_000_000)+1)
+	timeoutSec := fmt.Sprintf("%d", (m.UpdateTimer.Timeout/1_000_000_000)+1)
 	output.WriteString(fmt.Sprintf("Updating in %s...\n", timeoutSec))
-	for index, entry := range m.Entries {
+	for index, entry := range m.Torrents {
 		if index == m.cursor {
 			output.WriteRune('>')
 		} else {
 			output.WriteRune(' ')
 		}
-		output.WriteString(fmt.Sprintf("%-4s %-10s %s\n", entry.Id, entry.Status, entry.Filename))
+		output.WriteString(fmt.Sprintf("%-4d %-10s %s\n", entry.ID, TorrentStatus(entry), entry.Name))
 	}
 	output.WriteString(input.HelpMsg())
 	return output.String()
@@ -102,12 +140,70 @@ func main() {
 		}
 		defer f.Close()
 	}
+	client := transmission.New("http://127.0.0.1:9091", "", "")
+	// checkError(err)
+	_, err := client.GetTorrents()
+	if err != nil {
+		log.Panic(err)
+	}
+
+	// for _, torrent := range torrents {
+	// 	log.Println("Torrent:")
+	// 	log.Println("   ID:            ", torrent.ID)
+	// 	log.Println("   Name:          ", torrent.Name)
+	// 	log.Println("   Status:        ", torrent.Status)
+	// 	log.Println("   LeftUntilDone: ", torrent.LeftUntilDone)
+	// 	log.Println("   Eta:           ", torrent.Eta)
+	// 	log.Println("   UploadRatio:   ", torrent.UploadRatio)
+	// 	log.Println("   RateDownload:  ", torrent.RateDownload)
+	// 	log.Println("   RateUpload:    ", torrent.RateUpload)
+	// 	log.Println("   DownloadDir:   ", torrent.DownloadDir)
+	// 	log.Println("   IsFinished:    ", torrent.IsFinished)
+	// 	log.Println("   PercentDone:   ", torrent.PercentDone)
+	// 	log.Println("   SeedRatioMode: ", torrent.SeedRatioMode)
+	// }
+	// torrents, err := client.GetTorrents()
+	// if err != nil {
+	// 	log.Panic(err)
+	// }
 
 	if _, err := tea.NewProgram(model{
-        UpdateTimer: timer.NewWithInterval(timeout, time.Millisecond),
-    }).Run(); err != nil {
+		UpdateTimer: timer.NewWithInterval(timeout, time.Millisecond),
+		client:      &client,
+	}).Run(); err != nil {
 		fmt.Printf("Uh oh, there was an error: %v\n", err)
 		os.Exit(1)
 	}
 
+}
+
+const (
+	StatusStopped = iota
+	StatusCheckPending
+	StatusChecking
+	StatusDownloadPending
+	StatusDownloading
+	StatusSeedPending
+	StatusSeeding
+)
+
+func TorrentStatus(status transmission.Torrent) string {
+	switch status.Status {
+	case StatusStopped:
+		return "Stopped"
+	case StatusCheckPending:
+		return "Check waiting"
+	case StatusChecking:
+		return "Checking"
+	case StatusDownloadPending:
+		return "Download waiting"
+	case StatusDownloading:
+		return "Downloading"
+	case StatusSeedPending:
+		return "Seed waiting"
+	case StatusSeeding:
+		return "Seeding"
+	default:
+		return "unknown"
+	}
 }
