@@ -44,6 +44,18 @@ func CmdToggle(m model) tea.Cmd {
 	}
 }
 
+func CmdRemove(m model, deleteData bool) tea.Cmd {
+	return func() tea.Msg {
+		torrent := m.Torrents[m.cursor]
+        deleteCommand, err := transmission.NewDelCmd(torrent.ID, deleteData)
+        output, err :=m.client.ExecuteCommand(deleteCommand)
+        log.Println(fmt.Sprintf("%s", output))
+        checkError(err)
+
+        return nil
+	}
+}
+
 type MsgToggle struct{}
 
 type model struct {
@@ -104,6 +116,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, CmdUpdate(m)
 		case "p":
 			return m, CmdToggle(m)
+        case "d":
+            return m, CmdRemove(m, false)
 		default:
 			return m, input.ParseInput(msg.String())
 		}
@@ -146,26 +160,6 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-
-	// for _, torrent := range torrents {
-	// 	log.Println("Torrent:")
-	// 	log.Println("   ID:            ", torrent.ID)
-	// 	log.Println("   Name:          ", torrent.Name)
-	// 	log.Println("   Status:        ", torrent.Status)
-	// 	log.Println("   LeftUntilDone: ", torrent.LeftUntilDone)
-	// 	log.Println("   Eta:           ", torrent.Eta)
-	// 	log.Println("   UploadRatio:   ", torrent.UploadRatio)
-	// 	log.Println("   RateDownload:  ", torrent.RateDownload)
-	// 	log.Println("   RateUpload:    ", torrent.RateUpload)
-	// 	log.Println("   DownloadDir:   ", torrent.DownloadDir)
-	// 	log.Println("   IsFinished:    ", torrent.IsFinished)
-	// 	log.Println("   PercentDone:   ", torrent.PercentDone)
-	// 	log.Println("   SeedRatioMode: ", torrent.SeedRatioMode)
-	// }
-	// torrents, err := client.GetTorrents()
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
 
 	if _, err := tea.NewProgram(model{
 		UpdateTimer: timer.NewWithInterval(timeout, time.Millisecond),
