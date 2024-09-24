@@ -20,9 +20,6 @@ type actionMsg struct {
 }
 
 func main() {
-	// output, err := transmission.TransmissionList()
-	// util.CheckError(err)
-
 	if len(os.Getenv("DEBUG")) > 0 {
 		f, err := tea.LogToFile("debug.log", "debug")
 		if err != nil {
@@ -42,7 +39,6 @@ func main() {
 	if err != nil {
 
 		fmt.Printf("Uh oh, there was an error: %v\n", err)
-		os.Exit(1)
 	}
 	program.Run()
 

@@ -20,7 +20,7 @@ var actionsMap = []UserAction{
 	{[]string{"j", "down"}, "Move Down", CmdMoveCursorDown},
 	// {[]string{"p"}, "Pause/Unpause", CmdStart()},
 	// {[]string{"d"}, "Delete", CmdDefault},
-	{[]string{"x"}, "Delete and remove files", CmdDefault},
+	// {[]string{"x"}, "Delete and remove files", CmdDefault},
 	// {[]string{"q"}, "Quit", tea.Quit},
 }
 
@@ -35,8 +35,6 @@ func HelpMsg() string {
 	return output.String()
 }
 
-type MsgDefault struct{}
-
 type MsgMoveCursor struct {
 	Movement int
 }
@@ -48,14 +46,6 @@ func CmdMoveCursorDown() tea.Msg {
 	return MsgMoveCursor{1}
 }
 
-func CmdDefault() tea.Msg {
-	return MsgDefault{}
-}
-
-func CmdInvalid() tea.Msg {
-	return MsgDefault{}
-}
-
 func ParseInput(msg string) tea.Cmd {
 	for _, action := range actionsMap {
 		for _, shorcut := range action.Shortcuts {
@@ -64,5 +54,5 @@ func ParseInput(msg string) tea.Cmd {
 			}
 		}
 	}
-	return CmdInvalid
+	return nil
 }

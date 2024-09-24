@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/tubbebubbe/transmission"
@@ -20,18 +21,33 @@ type Model struct {
 	torrents    transmission.Torrents
 	cursor      int
 	addMode     bool
+
+	table table.Model
 }
 
 func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient) Model {
+	columns := []table.Column{
+		{Title: "ID", Width: 4},
+		{Title: "Status", Width: 12},
+		{Title: "Name", Width: 40},
+	}
+
+	t := table.New(
+		table.WithColumns(columns),
+		table.WithFocused(true),
+		table.WithHeight(7),
+	)
+
 	return Model{
 		updateTimer: updateTimer,
 		client:      client,
+		table:       t,
 	}
 }
 
 func (m Model) Init() tea.Cmd {
 	log.Printf(fmt.Sprintf("%s", m.torrents))
-	return m.updateTimer.Init()
+	return tea.Batch(m.updateTimer.Init(), CmdUpdate(m))
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -49,6 +65,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case MsgUpdate:
 		m.torrents = msg.Torrents
+		m.table.SetRows(RenderTorrentTable(m.torrents, m.cursor))
 		return m, nil
 
 	case input.MsgStart:
@@ -63,6 +80,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if newPos >= 0 && newPos <= len(m.torrents)-1 {
 			m.cursor = newPos
 		}
+		m.table.SetCursor(m.cursor)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -89,15 +107,7 @@ func (m Model) View() string {
 	var output strings.Builder
 	timeoutSec := fmt.Sprintf("%d", (m.updateTimer.Timeout/1_000_000_000)+1)
 	output.WriteString(fmt.Sprintf("Updating in %s...\n", timeoutSec))
-	for index, entry := range m.torrents {
-		if index == m.cursor {
-			output.WriteRune('>')
-		} else {
-			output.WriteRune(' ')
-		}
-		output.WriteString(fmt.Sprintf("%-4d %-10s %s\n", entry.ID, TorrentStatus(entry), entry.Name))
-	}
-	output.WriteString(input.HelpMsg())
+	output.WriteString(m.table.View())
 	return output.String()
 }
 
