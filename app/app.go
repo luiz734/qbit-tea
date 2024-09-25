@@ -1,8 +1,6 @@
 package app
 
 import (
-	"fmt"
-	"log"
 	"qbit-tea/input"
 	"strings"
 	"time"
@@ -10,7 +8,6 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/tubbebubbe/transmission"
 )
 
@@ -34,6 +31,8 @@ func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient) 
 	columns := []table.Column{
 		{Title: "ID", Width: 4},
 		{Title: "Status", Width: 12},
+		{Title: "Down", Width: 8},
+		{Title: "Up", Width: 8},
 		{Title: "Name", Width: 40},
 	}
 
@@ -51,7 +50,6 @@ func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient) 
 }
 
 func (m Model) Init() tea.Cmd {
-	log.Printf(fmt.Sprintf("%s", m.torrents))
 	return tea.Batch(m.updateTimer.Init(), CmdUpdate(m))
 }
 
@@ -71,6 +69,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case MsgUpdate:
 		m.torrents = msg.Torrents
 		m.table.SetRows(RenderTorrentTable(m.torrents, m.cursor))
+		m.table = UpdateColumnsWidth(m.table, m.windowSize.Width)
 		return m, nil
 
 	case input.MsgStart:
@@ -93,19 +92,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			Width  int
 			Height int
 		}{msg.Width, msg.Height}
-		return m, nil
-		// prevWidth := 0
-		// for _, c := range m.table.Columns() {
-		// 	prevWidth += c.Width
-		// }
-		// cols := m.table.Columns()
-		// cols[2].Width = msg.Width - 20
-		// if cols[2].Width > 50 {
-		// 	cols[2].Width = 50
-		// }
-		// m.table.SetColumns(cols)
-		// log.Println(fmt.Sprintf("%s", m.table.Columns()[2]))
-		// return m, nil
+		m.table = UpdateColumnsWidth(m.table, m.windowSize.Width)
+		return m, CmdUpdate(m)
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -129,15 +117,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	var output strings.Builder
-	timeoutSec := fmt.Sprintf("%d", (m.updateTimer.Timeout/1_000_000_000)+1)
-	var style = lipgloss.NewStyle().
-		BorderStyle(lipgloss.RoundedBorder()).
-        Foreground(lipgloss.Color("#aaaaaa")).
-		Width(m.windowSize.Width - 2).
-		Align(lipgloss.Center)
-	timerOut := style.Render(fmt.Sprintf("Updating in %s...", timeoutSec))
-	output.WriteString(timerOut)
+	// timeoutSec := fmt.Sprintf("%d", (m.updateTimer.Timeout/1_000_000_000)+1)
+	// var style = lipgloss.NewStyle().
+	// 	BorderStyle(lipgloss.RoundedBorder()).
+	// 	Foreground(lipgloss.Color("#aaaaaa")).
+	// 	Width(m.windowSize.Width - 2).
+	// 	Align(lipgloss.Center)
+	// timerOut := style.Render(fmt.Sprintf("Updating in %s...", timeoutSec))
+	// output.WriteString(timerOut)
 	// output.WriteString()
+	output.WriteRune('\n')
 	output.WriteString(m.table.View())
 	return output.String()
 }
