@@ -10,6 +10,7 @@ import (
 func CmdUpdate(m Model) tea.Cmd {
 	return func() tea.Msg {
 		torrents, err := m.client.GetTorrents()
+        // log.Print(fmt.Sprintf("%s", torrents))
 		util.CheckError(err)
 		return MsgUpdate{Torrents: torrents}
 	}

@@ -12,7 +12,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/tubbebubbe/transmission"
-	// "github.com/pyed/transmission"
 )
 
 type actionMsg struct {

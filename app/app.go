@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	"qbit-tea/input"
 	"strings"
 	"time"
@@ -54,7 +55,19 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
+	// User should always be able to quit
 	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c":
+			return m, tea.Quit
+		}
+	}
+	switch msg := msg.(type) {
+
+	case inputMsg:
+		log.Printf("got message: %s", msg)
 
 	case timer.TickMsg:
 		var cmd tea.Cmd
@@ -73,10 +86,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case input.MsgStart:
-		return m, nil
-
-	case MsgAdd:
-		// m.torrents[m.cursor].Name += msg.Foo
 		return m, nil
 
 	case input.MsgMoveCursor:
@@ -106,7 +115,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "d":
 			return m, CmdRemove(m, false)
 		case "a":
-			return m, CmdAdd(m)
+			s := NewInputModel(m)
+			return s.Update(nil)
 		default:
 			return m, input.ParseInput(msg.String())
 		}
