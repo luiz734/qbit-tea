@@ -3,6 +3,7 @@ package app
 import (
 	"log"
 	"qbit-tea/input"
+	"qbit-tea/util"
 	"strings"
 	"time"
 
@@ -31,6 +32,7 @@ type Model struct {
 func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient) Model {
 	columns := []table.Column{
 		{Title: "ID", Width: 4},
+		{Title: "%", Width: 6},
 		{Title: "Status", Width: 12},
 		{Title: "Down", Width: 8},
 		{Title: "Up", Width: 8},
@@ -67,7 +69,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case inputMsg:
-		log.Printf("got message: %s", msg)
+		addCommand, err := transmission.NewAddCmdByMagnet(string(msg))
+		util.CheckError(err)
+		_, err = m.client.ExecuteCommand(addCommand)
+		util.CheckError(err)
+		log.Printf("Add torrent %s", msg)
+		m.updateTimer = timer.NewWithInterval(Timeout, time.Millisecond)
+		return m, m.updateTimer.Init()
 
 	case timer.TickMsg:
 		var cmd tea.Cmd

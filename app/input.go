@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"qbit-tea/util"
 	"strings"
 
 	"github.com/atotto/clipboard"
@@ -58,7 +57,10 @@ func (m *inputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Automatically detect a magnet link on the clipboard and set as placeholder
     placeholder, err := clipboard.ReadAll()
-    util.CheckError(err)
+    // Clipboard empty
+    if err != nil {
+        placeholder = ""
+    }
     m.textInput.Placeholder = "Paste the magnet link"
     m.autocomplete = ""
 	if strings.HasPrefix(placeholder, "magnet:?xt=") {

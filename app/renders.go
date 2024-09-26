@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/charmbracelet/bubbles/table"
@@ -12,10 +13,11 @@ func RenderTorrentTable(torrents transmission.Torrents, cursor int) []table.Row 
 	var tr []table.Row
 	for _, t := range torrents {
 		strId := strconv.Itoa(t.ID)
+		strPercentDone := fmt.Sprintf("%.1f", t.PercentDone * 100.0)
 		strStatus := TorrentStatus(t)
 		strDown := humanize.Bytes(uint64(t.RateDownload))
 		strUp := humanize.Bytes(uint64(t.RateUpload))
-		tr = append(tr, table.Row{strId, strStatus, strDown, strUp, t.Name})
+		tr = append(tr, table.Row{strId, strPercentDone, strStatus, strDown, strUp, t.Name})
 	}
 	return tr
 }
