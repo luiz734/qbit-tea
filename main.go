@@ -27,7 +27,13 @@ func main() {
 		}
 		defer f.Close()
 	}
-	client := transmission.New("http://127.0.0.1:9091", "", "")
+
+	address := "localhost:9091"
+	if len(os.Args) > 1 {
+		address = os.Args[1]
+	}
+	address = fmt.Sprintf("http://%s", address)
+	client := transmission.New(address, "user", "password")
 	// util.CheckError(err)
 	_, err := client.GetTorrents()
 	if err != nil {
