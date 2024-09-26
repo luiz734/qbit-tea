@@ -3,6 +3,7 @@ module qbit-tea
 go 1.23.1
 
 require (
+	github.com/alecthomas/kong v1.2.1
 	github.com/atotto/clipboard v0.1.4
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.1.1

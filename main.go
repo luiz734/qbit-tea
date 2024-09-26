@@ -8,6 +8,7 @@ import (
 	"qbit-tea/input"
 	"time"
 
+	"github.com/alecthomas/kong"
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -16,6 +17,12 @@ import (
 
 type actionMsg struct {
 	helpItem input.UserAction
+}
+
+type CLI struct {
+	Address  string `short:"a" name:"address" default:"localhost:9091" help:"Address"`
+	User     string `short:"u" name:"user" default:"" help:"Transmission user"`
+	Password string `short:"p" name:"password" default:"" help:"Transmission password"`
 }
 
 func main() {
@@ -28,12 +35,11 @@ func main() {
 		defer f.Close()
 	}
 
-	address := "localhost:9091"
-	if len(os.Args) > 1 {
-		address = os.Args[1]
-	}
-	address = fmt.Sprintf("http://%s", address)
-	client := transmission.New(address, "user", "password")
+	var cli CLI
+	_ = kong.Parse(&cli)
+	address := fmt.Sprintf("http://%s", cli.Address)
+
+	client := transmission.New(address, cli.User, cli.Password)
 	// util.CheckError(err)
 	_, err := client.GetTorrents()
 	if err != nil {

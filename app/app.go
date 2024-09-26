@@ -2,7 +2,6 @@ package app
 
 import (
 	"log"
-	"os"
 	"qbit-tea/input"
 	"qbit-tea/util"
 	"strings"
@@ -21,10 +20,8 @@ type Model struct {
 	updateTimer timer.Model
 	torrents    transmission.Torrents
 	cursor      int
-	addMode     bool
-
-	table      table.Model
-	windowSize struct {
+	table       table.Model
+	windowSize  struct {
 		Width  int
 		Height int
 	}
@@ -60,12 +57,13 @@ func (m Model) Init() tea.Cmd {
 func NewAddInDirCmdByMagnet(magnetLink string, path string) (*transmission.Command, error) {
 	cmd, _ := transmission.NewAddCmd()
 	cmd.Arguments.Filename = magnetLink
-	if file, err := os.Stat(path); err != nil {
-		if !file.IsDir() {
-			log.Printf("%s is not a valid path", path)
-			os.Exit(1)
-		}
-	}
+	// Can't check if it's a dir on remote hosts
+	// if file, err := os.Stat(path); err != nil {
+	// 	if !file.IsDir() {
+	// 		log.Printf("%s is not a valid path", path)
+	// 		os.Exit(1)
+	// 	}
+	// }
 	cmd.Arguments.DownloadDir = path
 	return cmd, nil
 }
@@ -88,6 +86,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// User cancel the operation
 			return m, nil
 		}
+		log.Printf("Target dir: %s\nMagnet: %s\n", msg.downloadDir, msg.magnet)
 		addCommand, err := NewAddInDirCmdByMagnet(msg.magnet, msg.downloadDir)
 		util.CheckError(err)
 		_, err = m.client.ExecuteCommand(addCommand)
@@ -108,6 +107,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case MsgUpdate:
 		m.torrents = msg.Torrents
+		m.torrents.SortByAddedDate(true)
 		m.table.SetRows(RenderTorrentTable(m.torrents, m.cursor))
 		m.table = UpdateColumnsWidth(m.table, m.windowSize.Width)
 		return m, nil
