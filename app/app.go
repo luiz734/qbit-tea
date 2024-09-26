@@ -2,6 +2,7 @@ package app
 
 import (
 	"log"
+	"os"
 	"qbit-tea/input"
 	"qbit-tea/util"
 	"strings"
@@ -56,6 +57,19 @@ func (m Model) Init() tea.Cmd {
 	return tea.Batch(m.updateTimer.Init(), CmdUpdate(m))
 }
 
+func NewAddInDirCmdByMagnet(magnetLink string, path string) (*transmission.Command, error) {
+	cmd, _ := transmission.NewAddCmd()
+	cmd.Arguments.Filename = magnetLink
+	if file, err := os.Stat(path); err != nil {
+		if !file.IsDir() {
+			log.Printf("%s is not a valid path", path)
+			os.Exit(1)
+		}
+	}
+	cmd.Arguments.DownloadDir = path
+	return cmd, nil
+}
+
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// User should always be able to quit
@@ -68,8 +82,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	switch msg := msg.(type) {
 
-	case inputMsg:
-		addCommand, err := transmission.NewAddCmdByMagnet(string(msg))
+	// Trigger after user select a dir and magnet
+	case dirMsg:
+		if msg.magnet == "" || msg.downloadDir == "" {
+			// User cancel the operation
+			return m, nil
+		}
+		addCommand, err := NewAddInDirCmdByMagnet(msg.magnet, msg.downloadDir)
 		util.CheckError(err)
 		_, err = m.client.ExecuteCommand(addCommand)
 		util.CheckError(err)
@@ -123,8 +142,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "d":
 			return m, CmdRemove(m, false)
 		case "a":
-			s := NewInputModel(m)
+			s := NewDirModel(m, []string{
+				"/jellyfin/movies",
+				"/jellyfin/series",
+			})
 			return s.Update(nil)
+			// s := NewInputModel(m)
+			// return s.Update(nil)
 		default:
 			return m, input.ParseInput(msg.String())
 		}
