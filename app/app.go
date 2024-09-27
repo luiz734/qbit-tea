@@ -142,10 +142,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "d":
 			return m, CmdRemove(m, false)
 		case "a":
-			s := NewDirModel(m, []string{
-				"/jellyfin/movies",
-				"/jellyfin/series",
-			})
+			s := NewDirModel(m)
 			return s.Update(nil)
 			// s := NewInputModel(m)
 			// return s.Update(nil)

@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"io"
+	"path"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -11,9 +12,13 @@ import (
 	funk "github.com/thoas/go-funk"
 )
 
+var JellyShowsDir = "/jellyfin/series"
+var JellyMoviesDir = "/jellyfin/movies"
+
 type dirModel struct {
 	list        list.Model
 	downloadDir string
+	magent      string
 	prevModel   tea.Model
 }
 
@@ -63,8 +68,9 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	fmt.Fprint(w, fn(str))
 }
 
-func NewDirModel(prevModel tea.Model, dirs []string) dirModel {
+func NewDirModel(prevModel tea.Model) dirModel {
 	// Convert []string to []list.Item
+	dirs := []string{JellyShowsDir, JellyMoviesDir}
 	items := funk.Map(dirs, func(s string) list.Item {
 		return item(s)
 	}).([]list.Item)
@@ -90,11 +96,32 @@ func (m *dirModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.SetWidth(msg.Width)
 		return m, nil
 
+		// Called after user press enter
 	case inputMsg:
+		m.magent = string(msg)
+		switch m.downloadDir {
+		case JellyMoviesDir:
+			return m.prevModel.Update(dirMsg{
+				downloadDir: m.downloadDir,
+				magnet:      m.magent,
+			})
+			// s := NewInputModel(m)
+			// return s.Update(nil)
+		case JellyShowsDir:
+			s := NewDownloadSubDirModel(m)
+			return s.Update(nil)
+		default:
+			panic("Invalid option")
+		}
+
+    // Append the subdir to the path
+	case downloadSubDirMsg:
+		m.downloadDir = path.Join(m.downloadDir, string(msg))
 		return m.prevModel.Update(dirMsg{
 			downloadDir: m.downloadDir,
-			magnet:      string(msg),
+			magnet:      m.magent,
 		})
+
 	case tea.KeyMsg:
 		switch msg.Type {
 		// Allways handle quit first
