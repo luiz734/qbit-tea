@@ -62,12 +62,6 @@ func NewAddInDirCmdByMagnet(magnetLink string, path string) (*transmission.Comma
 	cmd, _ := transmission.NewAddCmd()
 	cmd.Arguments.Filename = magnetLink
 	// Can't check if it's a dir on remote hosts
-	// if file, err := os.Stat(path); err != nil {
-	// 	if !file.IsDir() {
-	// 		log.Printf("%s is not a valid path", path)
-	// 		os.Exit(1)
-	// 	}
-	// }
 	cmd.Arguments.DownloadDir = path
 	return cmd, nil
 }
@@ -100,7 +94,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.updateTimer.Init()
 
 	case timer.TickMsg:
-        log.Printf("tick")
 		var cmd tea.Cmd
 		m.updateTimer, cmd = m.updateTimer.Update(msg)
 		return m, cmd
@@ -131,6 +124,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			Height int
 		}{msg.Width - 2, msg.Height}
 		m.table = UpdateColumnsWidth(m.table, m.windowSize.Width)
+		m.table = table.New(
+			table.WithColumns(m.table.Columns()),
+			table.WithFocused(true),
+			table.WithHeight(msg.Height-2),
+		)
+
 		return m, tea.Batch(CmdUpdate(m), tea.ClearScreen)
 
 	case tea.KeyMsg:
@@ -159,13 +158,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	var output strings.Builder
 
-	// timeoutSec := fmt.Sprintf("%d", (m.updateTimer.Timeout/1_000_000_000)+1)
 	var styleAddress = lipgloss.NewStyle().
 		Width(m.windowSize.Width).
 		Align(lipgloss.Center).Bold(true)
-	// 	Foreground(lipgloss.Color("#aaaaaa")).
-	// 	Width(m.windowSize.Width - 2).
-	// 	Align(lipgloss.Center)
 	addresHeader := styleAddress.Render(fmt.Sprintf("%s", m.address))
 	output.WriteString(addresHeader)
 	output.WriteString("\n\n")
