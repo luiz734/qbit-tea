@@ -28,6 +28,7 @@ type Model struct {
 		Width  int
 		Height int
 	}
+	torrentRatio float64
 }
 
 func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient, address string) Model {
@@ -67,7 +68,6 @@ func NewAddInDirCmdByMagnet(magnetLink string, path string) (*transmission.Comma
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
 	// User should always be able to quit
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -115,6 +115,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if newPos >= 0 && newPos <= len(m.torrents)-1 {
 			m.cursor = newPos
 		}
+		torrent := m.torrents[m.cursor]
+		m.torrentRatio = torrent.UploadRatio
 		m.table.SetCursor(m.cursor)
 		return m, nil
 
@@ -151,21 +153,49 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, input.ParseInput(msg.String())
 		}
 	}
-
 	return m, nil
 }
 
 func (m Model) View() string {
 	var output strings.Builder
 
-	var styleAddress = lipgloss.NewStyle().
-		Width(m.windowSize.Width).
-		Align(lipgloss.Center).Bold(true)
-	addresHeader := styleAddress.Render(fmt.Sprintf("%s", m.address))
-	output.WriteString(addresHeader)
+	header := viewHeader(m)
+	output.WriteString(header)
+
 	output.WriteString("\n\n")
 	output.WriteString(m.table.View())
 	return output.String()
+}
+
+func viewHeader(m Model) string {
+	sectionWidth := m.windowSize.Width / 3
+	leftStyle := lipgloss.NewStyle().
+		Width(sectionWidth).Align(lipgloss.Left).MarginLeft(1)
+	centerStyle := lipgloss.NewStyle().
+		Width(sectionWidth).Align(lipgloss.Center).Margin(0)
+	rightStyle := lipgloss.NewStyle().
+		Width(sectionWidth).Align(lipgloss.Right).MarginRight(1)
+
+	// Left
+	strRatio := fmt.Sprintf("%0.1f", m.torrentRatio)
+	textLeft := leftStyle.Render(strRatio)
+
+	// Center
+	var styleAddress = lipgloss.NewStyle().
+		Align(lipgloss.Center).Bold(true)
+	address := styleAddress.Render(fmt.Sprintf("%s", m.address))
+	textCenter := centerStyle.Render(address)
+
+	// Right
+	r := ":D"
+	if m.torrentRatio < 1.0 {
+		r = ":("
+	} else if m.torrentRatio < 2.0 {
+		r = ":|"
+	}
+	textRight := rightStyle.Render(r)
+
+	return lipgloss.JoinHorizontal(lipgloss.Top, textLeft, textCenter, textRight)
 }
 
 const (

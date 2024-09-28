@@ -2,15 +2,16 @@ package app
 
 import (
 	"fmt"
-
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/dustin/go-humanize"
 	"github.com/tubbebubbe/transmission"
+	"log"
 )
 
 func RenderTorrentTable(torrents transmission.Torrents, cursor int) []table.Row {
 	var tr []table.Row
 	for _, t := range torrents {
+		log.Printf("%f", (t.UploadRatio))
 		strEta := formatTime(t.Eta)
 		strPercentDone := fmt.Sprintf("%.1f", t.PercentDone*100.0)
 		strStatus := TorrentStatus(t)
@@ -21,7 +22,8 @@ func RenderTorrentTable(torrents transmission.Torrents, cursor int) []table.Row 
 	return tr
 }
 
-// If seconds > 60, return the duration in format ??h??m 
+
+// If seconds > 60, return the duration in format ??h??m
 // If seconds <= 60, returns ~
 func formatTime(seconds int) string {
 	var hours, minutes int
@@ -34,11 +36,11 @@ func formatTime(seconds int) string {
 
 	if hours > 0 {
 		return fmt.Sprintf("%dh%dm", hours, minutes)
-    } else if minutes > 0 {
+	} else if minutes > 0 {
 		return fmt.Sprintf("%dm", minutes)
 	} else {
-        return "~"
-    }
+		return "~"
+	}
 }
 
 func UpdateColumnsWidth(t table.Model, windowWidth int) table.Model {
