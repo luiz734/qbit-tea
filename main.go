@@ -46,7 +46,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	program := tea.NewProgram(app.NewModel(timer.NewWithInterval(app.Timeout, time.Millisecond), &client))
+	program := tea.NewProgram(app.NewModel(timer.NewWithInterval(app.Timeout, time.Millisecond), &client, cli.Address))
 	if err != nil {
 
 		fmt.Printf("Uh oh, there was an error: %v\n", err)

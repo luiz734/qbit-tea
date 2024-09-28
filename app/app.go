@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"log"
 	"qbit-tea/input"
 	"qbit-tea/util"
@@ -10,6 +11,7 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/tubbebubbe/transmission"
 )
 
@@ -17,6 +19,7 @@ var Timeout = time.Second * 2.0
 
 type Model struct {
 	client      *transmission.TransmissionClient
+	address     string
 	updateTimer timer.Model
 	torrents    transmission.Torrents
 	cursor      int
@@ -27,7 +30,7 @@ type Model struct {
 	}
 }
 
-func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient) Model {
+func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient, address string) Model {
 	columns := []table.Column{
 		{Title: "ID", Width: 4},
 		{Title: "%", Width: 6},
@@ -47,11 +50,12 @@ func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient) 
 		updateTimer: updateTimer,
 		client:      client,
 		table:       t,
+		address:     address,
 	}
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.updateTimer.Init(), CmdUpdate(m))
+	return tea.Batch(m.updateTimer.Init(), CmdUpdate(m), tea.ClearScreen)
 }
 
 func NewAddInDirCmdByMagnet(magnetLink string, path string) (*transmission.Command, error) {
@@ -127,9 +131,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.windowSize = struct {
 			Width  int
 			Height int
-		}{msg.Width, msg.Height}
+		}{msg.Width - 2, msg.Height}
 		m.table = UpdateColumnsWidth(m.table, m.windowSize.Width)
-		return m, CmdUpdate(m)
+		return m, tea.Batch(CmdUpdate(m), tea.ClearScreen)
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -156,16 +160,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	var output strings.Builder
+
 	// timeoutSec := fmt.Sprintf("%d", (m.updateTimer.Timeout/1_000_000_000)+1)
-	// var style = lipgloss.NewStyle().
-	// 	BorderStyle(lipgloss.RoundedBorder()).
+	var styleAddress = lipgloss.NewStyle().
+		Width(m.windowSize.Width).
+		Align(lipgloss.Center).Bold(true)
 	// 	Foreground(lipgloss.Color("#aaaaaa")).
 	// 	Width(m.windowSize.Width - 2).
 	// 	Align(lipgloss.Center)
-	// timerOut := style.Render(fmt.Sprintf("Updating in %s...", timeoutSec))
-	// output.WriteString(timerOut)
-	// output.WriteString()
-	output.WriteRune('\n')
+	addresHeader := styleAddress.Render(fmt.Sprintf("%s", m.address))
+	output.WriteString(addresHeader)
+	output.WriteString("\n\n")
 	output.WriteString(m.table.View())
 	return output.String()
 }
