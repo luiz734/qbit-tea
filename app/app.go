@@ -32,7 +32,7 @@ type Model struct {
 
 func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient, address string) Model {
 	columns := []table.Column{
-		{Title: "ID", Width: 4},
+		{Title: "ETA", Width: 5},
 		{Title: "%", Width: 6},
 		{Title: "Status", Width: 12},
 		{Title: "Down", Width: 8},
@@ -88,7 +88,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case dirMsg:
 		if msg.magnet == "" || msg.downloadDir == "" {
 			// User cancel the operation
-			return m, nil
+			return m, m.updateTimer.Init()
 		}
 		log.Printf("Target dir: %s\nMagnet: %s\n", msg.downloadDir, msg.magnet)
 		addCommand, err := NewAddInDirCmdByMagnet(msg.magnet, msg.downloadDir)
@@ -100,6 +100,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.updateTimer.Init()
 
 	case timer.TickMsg:
+        log.Printf("tick")
 		var cmd tea.Cmd
 		m.updateTimer, cmd = m.updateTimer.Update(msg)
 		return m, cmd
@@ -114,9 +115,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.torrents.SortByAddedDate(true)
 		m.table.SetRows(RenderTorrentTable(m.torrents, m.cursor))
 		m.table = UpdateColumnsWidth(m.table, m.windowSize.Width)
-		return m, nil
-
-	case input.MsgStart:
 		return m, nil
 
 	case input.MsgMoveCursor:
