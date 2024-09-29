@@ -2,29 +2,10 @@ package app
 
 import (
 	"fmt"
+
 	"github.com/charmbracelet/bubbles/table"
-	"github.com/dustin/go-humanize"
-	"github.com/tubbebubbe/transmission"
-	"log"
 )
 
-func RenderTorrentTable(torrents transmission.Torrents, cursor int) []table.Row {
-	var tr []table.Row
-	for _, t := range torrents {
-		log.Printf("%f", (t.UploadRatio))
-		strEta := formatTime(t.Eta)
-		strPercentDone := fmt.Sprintf("%.1f", t.PercentDone*100.0)
-		strStatus := TorrentStatus(t)
-		strDown := humanize.Bytes(uint64(t.RateDownload))
-		strUp := humanize.Bytes(uint64(t.RateUpload))
-		tr = append(tr, table.Row{strEta, strPercentDone, strStatus, strDown, strUp, t.Name})
-	}
-	return tr
-}
-
-
-// If seconds > 60, return the duration in format ??h??m
-// If seconds <= 60, returns ~
 func formatTime(seconds int) string {
 	var hours, minutes int
 	acc := seconds

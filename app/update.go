@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	"qbit-tea/util"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -10,7 +11,7 @@ import (
 func CmdUpdate(m Model) tea.Cmd {
 	return func() tea.Msg {
 		torrents, err := m.client.GetTorrents()
-        // log.Print(fmt.Sprintf("%s", torrents))
+        log.Print("GET torrent from transmission")
 		util.CheckError(err)
 		return MsgUpdate{Torrents: torrents}
 	}

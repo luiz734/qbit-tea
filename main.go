@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"qbit-tea/app"
-	"qbit-tea/input"
 	"time"
 
 	"github.com/alecthomas/kong"
@@ -14,10 +13,6 @@ import (
 
 	"github.com/tubbebubbe/transmission"
 )
-
-type actionMsg struct {
-	helpItem input.UserAction
-}
 
 type CLI struct {
 	Address  string `short:"a" name:"address" default:"localhost:9091" help:"Address"`
