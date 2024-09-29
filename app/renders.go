@@ -24,7 +24,7 @@ func formatTime(seconds int) string {
 	}
 }
 
-func UpdateColumnsWidth(t table.Model, windowWidth int) table.Model {
+func updateTableSize(t *table.Model, windowSize windowSize) {
 	var columns = t.Columns()
 	var total int
 	for _, c := range columns {
@@ -32,8 +32,9 @@ func UpdateColumnsWidth(t table.Model, windowWidth int) table.Model {
 	}
 	// Last fiels should always be "Name" and fill all the remaining space
 	sumBeforeLastColumn := total - columns[len(columns)-1].Width
-	nameColumnWidth := windowWidth - sumBeforeLastColumn
+	nameColumnWidth := windowSize.Width - sumBeforeLastColumn
 	columns[len(columns)-1].Width = nameColumnWidth
 	t.SetColumns(columns)
-	return t
+	// Let room for other stuff on screen
+	t.SetHeight(windowSize.Height - 5)
 }

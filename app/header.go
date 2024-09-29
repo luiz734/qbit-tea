@@ -16,8 +16,13 @@ func viewHeader(m Model) string {
 		Width(sectionWidth).Align(lipgloss.Right).MarginRight(1)
 
 	// Left
-	strRatio := fmt.Sprintf("%0.1f", m.torrentRatio)
-	textLeft := leftStyle.Render(strRatio)
+	var textLeft string
+	ratio := 1.0
+	if m.torrent != nil {
+		ratio = m.torrent.UploadRatio
+		strRatio := fmt.Sprintf("%0.1f", ratio)
+		textLeft = leftStyle.Render(strRatio)
+	}
 
 	// Center
 	var styleAddress = lipgloss.NewStyle().
@@ -27,9 +32,9 @@ func viewHeader(m Model) string {
 
 	// Right
 	r := ":D"
-	if m.torrentRatio < 1.0 {
+	if ratio < 1.0 {
 		r = ":("
-	} else if m.torrentRatio < 2.0 {
+	} else if ratio < 2.0 {
 		r = ":|"
 	}
 	textRight := rightStyle.Render(r)
