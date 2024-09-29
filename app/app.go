@@ -23,11 +23,10 @@ type Model struct {
 	client      *transmission.TransmissionClient
 	address     string
 	updateTimer timer.Model
-	// torrents    transmission.Torrents
-	table        table.Model
-	windowSize   windowSize
-    // Selected row. Can be null before the data is loaded
-	torrent      *transmission.Torrent
+	table       table.Model
+	windowSize  windowSize
+	// Selected row. Can be null before the data is loaded
+	torrent *transmission.Torrent
 }
 
 func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient, address string) Model {
@@ -47,20 +46,20 @@ func (m Model) Init() tea.Cmd {
 	)
 }
 
-// func NewAddInDirCmdByMagnet(magnetLink string, path string) (*transmission.Command, error) {
-// 	cmd, _ := transmission.NewAddCmd()
-// 	cmd.Arguments.Filename = magnetLink
-// 	// Can't check if it's a dir on remote hosts
-// 	cmd.Arguments.DownloadDir = path
-// 	return cmd, nil
-// }
+func NewAddInDirCmdByMagnet(magnetLink string, path string) (*transmission.Command, error) {
+	cmd, _ := transmission.NewAddCmd()
+	cmd.Arguments.Filename = magnetLink
+	// Can't check if it's a dir on remote hosts
+	cmd.Arguments.DownloadDir = path
+	return cmd, nil
+}
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// User should always be able to quit
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c":
+		case "ctrl+c", "q":
 			return m, tea.Quit
 		}
 	}
@@ -68,19 +67,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	// Trigger after user select a dir and magnet
-	// case dirMsg:
-	// 	if msg.magnet == "" || msg.downloadDir == "" {
-	// 		// User cancel the operation
-	// 		return m, m.updateTimer.Init()
-	// 	}
-	// 	log.Printf("Target dir: %s\nMagnet: %s\n", msg.downloadDir, msg.magnet)
-	// 	addCommand, err := NewAddInDirCmdByMagnet(msg.magnet, msg.downloadDir)
-	// 	util.CheckError(err)
-	// 	_, err = m.client.ExecuteCommand(addCommand)
-	// 	util.CheckError(err)
-	// 	log.Printf("Add torrent %s", msg)
-	// 	m.updateTimer = timer.NewWithInterval(Timeout, time.Millisecond)
-	// 	return m, m.updateTimer.Init()
+	case dirMsg:
+		if msg.magnet == "" || msg.downloadDir == "" {
+			// User cancel the operation
+			return m, m.updateTimer.Init()
+		}
+		log.Printf("target dir: %s\nMagnet: %s\n", msg.downloadDir, msg.magnet)
+		addCommand, err := NewAddInDirCmdByMagnet(msg.magnet, msg.downloadDir)
+		util.CheckError(err)
+		_, err = m.client.ExecuteCommand(addCommand)
+		util.CheckError(err)
+		log.Printf("add torrent %s", msg)
+		m.updateTimer = timer.NewWithInterval(Timeout, time.Millisecond)
+		return m, m.updateTimer.Init()
 
 	case timer.TickMsg:
 		m.updateTimer, cmd = m.updateTimer.Update(msg)
@@ -102,26 +101,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
-		// case "ctrl+c", "q":
-		// 	return m, tea.Quit
-		// case "u":
-		// 	return m, CmdUpdate(m)
+		case "u":
+			return m, CmdUpdate(m)
 		case "p":
 			return m, CmdToggle(m)
-		// case "d":
-		// 	return m, CmdRemove(m, false)
+		case "d":
+			return m, CmdRemove(m, false)
 		case "a":
 			s := NewDirModel(m)
 			return s.Update(nil)
 		}
 	}
+
 	m.table, cmd = m.table.Update(msg)
 	torrents, err := m.client.GetTorrents()
 	util.CheckError(err)
 	torrents.SortByAddedDate(true)
 	m.torrent = &torrents[m.table.Cursor()]
 
-	log.Printf("%d", m.table.Cursor())
 	return m, cmd
 }
 
