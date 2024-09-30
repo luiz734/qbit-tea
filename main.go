@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"qbit-tea/app"
@@ -28,6 +29,9 @@ func main() {
 			os.Exit(1)
 		}
 		defer f.Close()
+		log.SetOutput(f)
+	} else {
+		log.SetOutput(io.Discard)
 	}
 
 	var cli CLI
