@@ -25,7 +25,7 @@ func main() {
 	if len(os.Getenv("DEBUG")) > 0 {
 		f, err := tea.LogToFile("debug.log", "debug")
 		if err != nil {
-			fmt.Println("fatal:", err)
+			log.Printf("fatal:", err)
 			os.Exit(1)
 		}
 		defer f.Close()
@@ -42,13 +42,13 @@ func main() {
 	// util.CheckError(err)
 	_, err := client.GetTorrents()
 	if err != nil {
-		log.Panic(err)
+		log.Fatal("Can't connect to transmission-daemon.\nIs the daemon running?")
 	}
 
 	program := tea.NewProgram(app.NewModel(timer.NewWithInterval(app.Timeout, time.Millisecond), &client, cli.Address))
 	if err != nil {
 
-		fmt.Printf("Uh oh, there was an error: %v\n", err)
+		log.Fatal("Uh oh, there was an error: %v\n", err)
 	}
 	program.Run()
 
