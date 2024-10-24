@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/tubbebubbe/transmission"
 )
 
@@ -26,7 +27,8 @@ type Model struct {
 	table       table.Model
 	windowSize  windowSize
 	// Selected row. Can be null before the data is loaded
-	torrent *transmission.Torrent
+	torrentsCount int
+	torrent       *transmission.Torrent
 }
 
 func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient, address string) Model {
@@ -115,11 +117,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	m.table, cmd = m.table.Update(msg)
 	torrents, err := m.client.GetTorrents()
+	m.torrentsCount = len(torrents)
 	util.CheckError(err)
 	torrents.SortByAddedDate(true)
 	m.torrent = &torrents[m.table.Cursor()]
 
 	return m, cmd
+}
+
+func (m Model) EmptyTorrentView(width, height int, helpStyle lipgloss.Style) string {
+	style := helpStyle.
+		Width(width).
+		Height(height).
+		AlignHorizontal(lipgloss.Center)
+	return style.Render("<add some torrents>")
 }
 
 func (m Model) View() string {
@@ -129,7 +140,15 @@ func (m Model) View() string {
 	output.WriteString(header)
 	output.WriteString("\n\n")
 
-	output.WriteString(m.table.View())
+	if m.torrentsCount == 0 {
+		// 2 because newlines
+		emptyHeight := m.windowSize.Height - lipgloss.Height(header) - lipgloss.Height(m.table.HelpView()) - 2
+		helpStyle := m.table.Help.Styles.ShortKey
+		output.WriteString(m.EmptyTorrentView(m.windowSize.Width, emptyHeight, helpStyle))
+	} else {
+		output.WriteString(m.table.View())
+	}
+
 	output.WriteString("\n\n")
 	output.WriteString(m.table.HelpView())
 
