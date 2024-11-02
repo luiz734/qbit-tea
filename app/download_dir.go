@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"path"
+	"qbit-tea/config"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -12,8 +13,8 @@ import (
 	funk "github.com/thoas/go-funk"
 )
 
-var JellyShowsDir = "/jellyfin/series"
-var JellyMoviesDir = "/jellyfin/movies"
+// var JellyShowsDir = "/jellyfin/series"
+// var JellyMoviesDir = "/jellyfin/movies"
 
 type dirModel struct {
 	list        list.Model
@@ -68,9 +69,19 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	fmt.Fprint(w, fn(str))
 }
 
+func isMovieDir(path string) bool {
+	for _, s := range config.Cfg.MoviesDirs {
+		if s == path {
+			return true
+		}
+	}
+	return false
+}
+
 func NewDirModel(prevModel tea.Model) dirModel {
 	// Convert []string to []list.Item
-	dirs := []string{JellyShowsDir, JellyMoviesDir}
+	// dirs := []string{JellyShowsDir, JellyMoviesDir}
+	dirs := append(config.Cfg.MoviesDirs, config.Cfg.ShowsDirs...)
 	items := funk.Map(dirs, func(s string) list.Item {
 		return item(s)
 	}).([]list.Item)
@@ -99,22 +110,17 @@ func (m *dirModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Called after user press enter
 	case inputMsg:
 		m.magent = string(msg)
-		switch m.downloadDir {
-		case JellyMoviesDir:
+		if isMovieDir(m.downloadDir) {
 			return m.prevModel.Update(dirMsg{
 				downloadDir: m.downloadDir,
 				magnet:      m.magent,
 			})
-			// s := NewInputModel(m)
-			// return s.Update(nil)
-		case JellyShowsDir:
+		} else {
 			s := NewDownloadSubDirModel(m)
 			return s.Update(nil)
-		default:
-			panic("Invalid option")
 		}
 
-    // Append the subdir to the path
+		// Append the subdir to the path
 	case downloadSubDirMsg:
 		m.downloadDir = path.Join(m.downloadDir, string(msg))
 		return m.prevModel.Update(dirMsg{
