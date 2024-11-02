@@ -8,7 +8,7 @@ import (
 	"github.com/tubbebubbe/transmission"
 )
 
-func updateTableRows(m *Model, torrents transmission.Torrents) {
+func updateTableRows(m *AppModel, torrents transmission.Torrents) {
     torrents.SortByAddedDate(true)
 	rows := []table.Row{}
 	for _, t := range torrents {

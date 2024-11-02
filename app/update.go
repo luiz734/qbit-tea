@@ -8,7 +8,7 @@ import (
 	"github.com/tubbebubbe/transmission"
 )
 
-func CmdUpdate(m Model) tea.Cmd {
+func CmdUpdate(m AppModel) tea.Cmd {
 	return func() tea.Msg {
 		torrents, err := m.client.GetTorrents()
         // log.Info("GET torrent from transmission")

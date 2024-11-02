@@ -20,7 +20,7 @@ type windowSize struct {
 	Height int
 }
 
-type Model struct {
+type AppModel struct {
 	client      *transmission.TransmissionClient
 	address     string
 	updateTimer timer.Model
@@ -31,8 +31,8 @@ type Model struct {
 	torrent       *transmission.Torrent
 }
 
-func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient, address string) Model {
-	return Model{
+func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient, address string) AppModel {
+	return AppModel{
 		updateTimer: updateTimer,
 		client:      client,
 		table:       createTable([]table.Row{}, 0),
@@ -40,7 +40,7 @@ func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient, 
 	}
 }
 
-func (m Model) Init() tea.Cmd {
+func (m AppModel) Init() tea.Cmd {
 	return tea.Batch(
 		m.updateTimer.Init(),
 		CmdUpdate(m),
@@ -56,7 +56,7 @@ func NewAddInDirCmdByMagnet(magnetLink string, path string) (*transmission.Comma
 	return cmd, nil
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// User should always be able to quit
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -125,7 +125,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m Model) EmptyTorrentView(width, height int, helpStyle lipgloss.Style) string {
+func (m AppModel) EmptyTorrentView(width, height int, helpStyle lipgloss.Style) string {
 	style := helpStyle.
 		Width(width).
 		Height(height).
@@ -133,7 +133,7 @@ func (m Model) EmptyTorrentView(width, height int, helpStyle lipgloss.Style) str
 	return style.Render("<add some torrents>")
 }
 
-func (m Model) View() string {
+func (m AppModel) View() string {
 	var output strings.Builder
 
 	header := viewHeader(m)

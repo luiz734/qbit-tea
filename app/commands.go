@@ -9,7 +9,7 @@ import (
 	"github.com/tubbebubbe/transmission"
 )
 
-func CmdToggle(m Model) tea.Cmd {
+func CmdToggle(m AppModel) tea.Cmd {
 	return func() tea.Msg {
 		torrent := *m.torrent
 		switch torrent.Status {
@@ -24,7 +24,7 @@ func CmdToggle(m Model) tea.Cmd {
 	}
 }
 
-func CmdRemove(m Model, deleteData bool) tea.Cmd {
+func CmdRemove(m AppModel, deleteData bool) tea.Cmd {
 	return func() tea.Msg {
 		torrent := *m.torrent
 		deleteCommand, err := transmission.NewDelCmd(torrent.ID, deleteData)

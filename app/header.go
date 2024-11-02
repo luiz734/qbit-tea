@@ -6,7 +6,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func viewHeader(m Model) string {
+func viewHeader(m AppModel) string {
 	sectionWidth := m.windowSize.Width / 3
 	leftStyle := lipgloss.NewStyle().
 		Width(sectionWidth).Align(lipgloss.Left).MarginLeft(1)
