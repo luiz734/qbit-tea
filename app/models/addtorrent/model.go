@@ -23,14 +23,8 @@ type Model struct {
 	// Window size
 	width  int
 	height int
-
-	// Inputs
-	// inputMagnet textinput.Model
-	// inputSubdir textinput.Model
-
-	inputs    InputGroup
-	dirPicker dirPickModel
-	// Things that can be focused
+	// Things can can be focused
+	inputs InputGroup
 }
 
 func InitialModel(prevModel *tea.Model) Model {
@@ -52,10 +46,11 @@ func InitialModel(prevModel *tea.Model) Model {
 		prevModel: prevModel,
 		help:      help.New(),
 		keyMap:    DefaultAddTorrentKeyMap(),
-		// inputMagnet: ti,
-		// inputSubdir: sd,
-		inputs:    NewInputGroup(ti, sd),
-		dirPicker: NewDickPickModel(),
+		inputs: NewInputGroup(
+			&TextInputFocuser{ti},
+			&TextInputFocuser{sd},
+			NewDickPickModel(),
+		),
 	}
 }
 
@@ -87,13 +82,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 
 		magicNumber := 2
-		// styleError = styleError.Width(m.width - magicNumber)
 		styleMagnet = styleMagnet.Width(m.width - magicNumber)
 		styleHelp = styleHelp.Width(m.width - magicNumber)
-
-		// We comment out here to render new lines manually
-		// Add spaces before and after later
-		// styleOutput = styleOutput.Height(m.height - magicNumber)
 
 		cmds = append(cmds, tea.ClearScreen)
 	}
@@ -101,24 +91,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.inputs, cmd = m.inputs.Update(msg)
 	cmds = append(cmds, cmd)
 
-	m.dirPicker, cmd = m.dirPicker.Update(msg)
-	cmds = append(cmds, cmd)
+	// m.dirPicker, cmd = m.dirPicker.Update(msg)
+	// cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
 }
 
 func (m Model) View() string {
-	// errorView := lipgloss.JoinVertical(lipgloss.Center,
-	// 	styleErrTitle.Render(m.errTitle),
-	// 	styleErrDesc.Render(m.errDesc),
-	// )
-	// errorView = styleError.Render(errorView)
-	// inputMagnetView := styleMagnet.Render(m.inputMagnet.View())
-	// inputSubdirView := styleMagnet.Render(m.inputSubdir.View())
-
 	formView := lipgloss.JoinVertical(lipgloss.Left,
 		m.inputs.View(),
-		m.dirPicker.View(),
 	)
 	helpView := styleHelp.Render(m.help.View(m.keyMap))
 

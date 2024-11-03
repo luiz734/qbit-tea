@@ -12,11 +12,9 @@ import (
 	funk "github.com/thoas/go-funk"
 )
 
-// var JellyShowsDir = "/jellyfin/series"
-// var JellyMoviesDir = "/jellyfin/movies"
-
 type dirPickModel struct {
-	list list.Model
+	list    list.Model
+	focused bool
 }
 
 func (m dirPickModel) Init() tea.Cmd {
@@ -58,11 +56,11 @@ func isMovieDir(path string) bool {
 	return false
 }
 
-func NewDickPickModel() dirPickModel {
+func NewDickPickModel() *dirPickModel {
 	// Convert []string to []list.Item
 	// dirs := []string{JellyShowsDir, JellyMoviesDir}
 	dirs := append(config.Cfg.MoviesDirs, config.Cfg.ShowsDirs...)
-    sort.Strings(dirs)
+	sort.Strings(dirs)
 	items := funk.Map(dirs, func(s string) list.Item {
 		return item(s)
 	}).([]list.Item)
@@ -73,24 +71,44 @@ func NewDickPickModel() dirPickModel {
 	l.SetShowHelp(false)
 	l.SetShowStatusBar(false)
 
-	return dirPickModel{
+	return &dirPickModel{
 		list: l,
 	}
 }
 
 type inputMsg string
 
-func (m dirPickModel) Update(msg tea.Msg) (dirPickModel, tea.Cmd) {
+func (m *dirPickModel) Update(msg tea.Msg) (Focuser, tea.Cmd) {
+	if !m.focused {
+		return m, nil
+	}
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
 }
 
-func (m dirPickModel) View() string {
+func (m *dirPickModel) View() string {
 	return m.list.View()
 }
 
-func (m dirPickModel) GetPath() string {
+func (m *dirPickModel) GetPath() string {
+	item, ok := m.list.SelectedItem().(item)
+	if ok {
+		return string(item)
+	}
+	return ""
+}
+
+func (m *dirPickModel) Focus() tea.Cmd {
+	m.focused = true
+	return nil
+}
+
+func (m *dirPickModel) Blur() {
+    m.focused = false
+}
+
+func (m dirPickModel) Value() string {
 	item, ok := m.list.SelectedItem().(item)
 	if ok {
 		return string(item)
