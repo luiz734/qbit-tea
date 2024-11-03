@@ -29,27 +29,31 @@ type Model struct {
 
 func InitialModel(prevModel *tea.Model) Model {
 	ti := textinput.New()
-	ti.Placeholder = "Paste the magnet link"
-	ti.Prompt = "Magnet: "
-	ti.PromptStyle = styleLabel
+    // TOD o: placeholder + margin add new lines
+	ti.Placeholder = "paste the magnet link"
+    ti.Prompt = "Magnet: "
 	ti.CharLimit = 156
-	ti.SetSuggestions([]string{"foo", "bar"})
+	ti.PromptStyle = stylePrompt
 	ti.SetValue(GetMagnetFromClipboard())
+    ti.Width = 5
+	// ti.PlaceholderStyle = stylePlaceholder
 
 	sd := textinput.New()
-	sd.Placeholder = "subdir"
+	sd.Placeholder = "leave empty to skip"
 	sd.Prompt = "Subdir: "
-	sd.PromptStyle = styleLabel
 	sd.CharLimit = 156
+	sd.PromptStyle = stylePrompt
+	// sd.PlaceholderStyle = stylePlaceholder
+    sd.Width = 5
 
 	return Model{
 		prevModel: prevModel,
 		help:      help.New(),
 		keyMap:    DefaultAddTorrentKeyMap(),
 		inputs: NewInputGroup(
-			&TextInputFocuser{ti},
-			&TextInputFocuser{sd},
 			NewDickPickModel(),
+			&TextInputFocuser{sd},
+			&TextInputFocuser{ti},
 		),
 	}
 }
@@ -74,7 +78,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Warning: User can't type ? anymore
 			m.help.ShowAll = !m.help.ShowAll
 			return m, nil
-		case key.Matches(msg, m.keyMap.Add):
+		case key.Matches(msg, m.keyMap.Next):
 			return m, m.inputs.FocusNext()
 		}
 	case tea.WindowSizeMsg:
@@ -82,17 +86,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 
 		magicNumber := 2
-		styleMagnet = styleMagnet.Width(m.width - magicNumber)
 		styleHelp = styleHelp.Width(m.width - magicNumber)
+        // Don't update the width here
+        // The width depends on the prompt
+        // Update in input_group.go instead 
+		// styleUnfocused = styleUnfocused.Width(m.width - magicNumber)
+		// styleFocused = styleFocused.Width(m.width - magicNumber)
 
 		cmds = append(cmds, tea.ClearScreen)
 	}
 
 	m.inputs, cmd = m.inputs.Update(msg)
 	cmds = append(cmds, cmd)
-
-	// m.dirPicker, cmd = m.dirPicker.Update(msg)
-	// cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
 }
@@ -107,21 +112,21 @@ func (m Model) View() string {
 	heightHelp := lipgloss.Height(helpView)
 
 	// Always center the error message
-	gapTop := (m.height - heightForm) / 2
-	if gapTop < 0 {
-		gapTop = 0
-	}
-	gapTopView := strings.Repeat("\n", gapTop)
+	// gapTop := (m.height - heightForm) / 2
+	// gapTop := 0
+	// if gapTop < 0 {
+	// 	gapTop = 0
+	// }
+	// gapTopView := strings.Repeat("\n", gapTop)
 
 	// If help has many lines, remove from bottom gap only
-	gapBottom := gapTop - heightHelp + 1
+	gapBottom := m.height - heightHelp - heightForm + 1
 	if gapBottom < 0 {
 		gapBottom = 0
 	}
 	gapBottomView := strings.Repeat("\n", gapBottom)
 
-	return fmt.Sprintf("%s%s%s%s",
-		gapTopView,
+	return fmt.Sprintf("%s%s%s",
 		formView,
 		gapBottomView,
 		helpView,

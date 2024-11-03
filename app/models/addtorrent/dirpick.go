@@ -65,11 +65,13 @@ func NewDickPickModel() *dirPickModel {
 		return item(s)
 	}).([]list.Item)
 
-	l := list.New(items, itemDelegate{}, 5, 6)
+	l := list.New(items, itemDelegate{}, 10, 8)
 	l.SetFilteringEnabled(false)
-	l.SetShowTitle(false)
+	l.SetShowTitle(true)
 	l.SetShowHelp(false)
 	l.SetShowStatusBar(false)
+	l.Styles.Title = titleStyle
+	l.Title = "Download direcotry"
 
 	return &dirPickModel{
 		list: l,
@@ -79,6 +81,12 @@ func NewDickPickModel() *dirPickModel {
 type inputMsg string
 
 func (m *dirPickModel) Update(msg tea.Msg) (Focuser, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+        // This affects the title, but doesn't make the model bigger
+		m.list.SetWidth(msg.Width)
+		return m, nil
+	}
 	if !m.focused {
 		return m, nil
 	}
@@ -105,7 +113,7 @@ func (m *dirPickModel) Focus() tea.Cmd {
 }
 
 func (m *dirPickModel) Blur() {
-    m.focused = false
+	m.focused = false
 }
 
 func (m dirPickModel) Value() string {

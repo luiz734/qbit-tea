@@ -12,6 +12,16 @@ type TextInputFocuser struct {
 }
 
 func (t *TextInputFocuser) Update(msg tea.Msg) (Focuser, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		// Again, width must be smaller thant the window
+        // This time, the width should fill the remaining space
+        // Prompt takes some, also border
+        // This 3 should be 2 (1 border on each side)
+        widthPromp := len(t.Model.Prompt)
+		magicNumber := widthPromp + 3
+		t.Model.Width = msg.Width - magicNumber
+	}
 	updatedModel, cmd := t.Model.Update(msg)
 	t.Model = updatedModel
 	return t, cmd
@@ -66,8 +76,12 @@ func (m InputGroup) Update(msg tea.Msg) (InputGroup, tea.Cmd) {
 
 func (m InputGroup) View() string {
 	output := ""
-	for _, item := range m.inputGroup {
-		output += styleMagnet.Render(item.View())
+	for index, item := range m.inputGroup {
+		if index == m.focus {
+			output += styleFocused.Render(item.View())
+		} else {
+			output += styleUnfocused.Render(item.View())
+		}
 	}
 	return output
 }
@@ -81,13 +95,14 @@ func NewInputGroup(f ...Focuser) InputGroup {
 		log.Fatal("Can't create empty input group")
 	}
 
+	items[0].Focus()
 	// Focus the first non empty
-	for index := range f {
-		if items[index].Value() == "" {
-			items[index].Focus()
-			break
-		}
-	}
+	// for index := range f {
+	// 	if items[index].Value() == "" {
+	// 		items[index].Focus()
+	// 		break
+	// 	}
+	// }
 	return InputGroup{
 		inputGroup: items,
 	}

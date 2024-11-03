@@ -9,21 +9,37 @@ import (
 )
 
 var (
-	styleLabel = lipgloss.NewStyle().
+	stylePrompt = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(colors.Pink)
-
-	styleMagnet = lipgloss.NewStyle().
+	styleUnfocused = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(colors.Surface0)
+			BorderForeground(colors.Surface0).
+			MarginTop(1)
+		//          PaddingRight(1)
+
+	styleFocused = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(colors.Pink).
+			MarginTop(1)
+		// PaddingRight(1)
 
 	styleHelp = models.StyleHelp
 )
 
+// Directory picker
 var (
-	// titleStyle        = lipgloss.NewStyle().MarginLeft(2)
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
+	titleStyle = lipgloss.NewStyle().
+			MarginLeft(0).
+			Foreground(colors.Pink).
+			Bold(true)
+	itemStyle = lipgloss.NewStyle().
+			PaddingLeft(4).
+			Foreground(colors.Surface2)
+	selectedItemStyle = lipgloss.NewStyle().
+				PaddingLeft(2).
+				Foreground(lipgloss.Color("#fff"))
+
 	// paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	// helpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
 	// quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
