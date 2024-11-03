@@ -1,8 +1,7 @@
-package app
+package errorscreen
 
 import (
 	"fmt"
-	"qbit-tea/colors"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -11,13 +10,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type ErrorModel struct {
+type Model struct {
 	// Go back to prev model
 	prevModel *tea.Model
 	// help
 	help help.Model
 	// Keymaps
-	keyMap keyMap
+	keyMap keymap
 
 	// Window size
 	width  int
@@ -28,25 +27,8 @@ type ErrorModel struct {
 	errDesc  string
 }
 
-var (
-	styleErrTitle = lipgloss.NewStyle().
-			Foreground(colors.Pink).
-			Bold(true).
-			Align(lipgloss.Center)
-	styleErrDesc = lipgloss.NewStyle().
-			Foreground(colors.Surface2)
-	styleError = lipgloss.NewStyle().
-		// Margin(1).
-		// Border(lipgloss.NormalBorder()).
-		// BorderForeground(colors.Surface2).
-		Align(lipgloss.Center, lipgloss.Center)
-
-	styleHelp = lipgloss.NewStyle().
-			Align(lipgloss.Center, lipgloss.Center)
-)
-
-func InitialErrorModel(prevModel *tea.Model, errTitle, errDesc string) ErrorModel {
-	return ErrorModel{
+func InitialModel(prevModel *tea.Model, errTitle, errDesc string) Model {
+	return Model{
 		prevModel: prevModel,
 		help:      help.New(),
 		keyMap:    DefaultKeyMap(),
@@ -55,11 +37,11 @@ func InitialErrorModel(prevModel *tea.Model, errTitle, errDesc string) ErrorMode
 	}
 }
 
-func (m ErrorModel) Init() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	return tea.Batch(tea.ClearScreen)
 }
 
-func (m ErrorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var err error
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
@@ -103,7 +85,7 @@ func (m ErrorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m ErrorModel) View() string {
+func (m Model) View() string {
 	errorView := lipgloss.JoinVertical(lipgloss.Center,
 		styleErrTitle.Render(m.errTitle),
 		styleErrDesc.Render(m.errDesc),
@@ -134,43 +116,4 @@ func (m ErrorModel) View() string {
 		gapBottomView,
 		helpView,
 	)
-}
-
-type keyMap struct {
-	Exit key.Binding
-	Quit key.Binding
-	Help key.Binding
-}
-
-// ShortHelp returns keybindings to be shown in the mini help view. It's part
-// of the key.Map interface.
-func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Help, k.Quit, k.Exit}
-}
-
-// FullHelp returns keybindings for the expanded help view. It's part of the
-// key.Map interface.
-func (k keyMap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.Exit, k.Help}, // first column
-		{k.Quit},         // second column
-	}
-}
-
-// DefaultKeyMap returns a set of pager-like default keybindings.
-func DefaultKeyMap() keyMap {
-	return keyMap{
-		Help: key.NewBinding(
-			key.WithKeys("?"),
-			key.WithHelp("?", "toggle help"),
-		),
-		Quit: key.NewBinding(
-			key.WithKeys("ctrl-c"),
-			key.WithHelp("C-c", "quit"),
-		),
-		Exit: key.NewBinding(
-			key.WithKeys("esc"),
-			key.WithHelp("any", "go back"),
-		),
-	}
 }
