@@ -3,6 +3,8 @@ package addtorrent
 import (
 	"fmt"
 	"strings"
+
+	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -26,17 +28,19 @@ type Model struct {
 	// inputMagnet textinput.Model
 	// inputSubdir textinput.Model
 
-	inputs InputGroup
-
+	inputs    InputGroup
+	dirPicker dirPickModel
 	// Things that can be focused
 }
 
 func InitialModel(prevModel *tea.Model) Model {
 	ti := textinput.New()
-	ti.Placeholder = "magnet"
+	ti.Placeholder = "Paste the magnet link"
 	ti.Prompt = "Magnet: "
 	ti.PromptStyle = styleLabel
 	ti.CharLimit = 156
+	ti.SetSuggestions([]string{"foo", "bar"})
+	ti.SetValue(GetMagnetFromClipboard())
 
 	sd := textinput.New()
 	sd.Placeholder = "subdir"
@@ -50,7 +54,8 @@ func InitialModel(prevModel *tea.Model) Model {
 		keyMap:    DefaultAddTorrentKeyMap(),
 		// inputMagnet: ti,
 		// inputSubdir: sd,
-		inputs: NewInputGroup(ti, sd),
+		inputs:    NewInputGroup(ti, sd),
+		dirPicker: NewDickPickModel(),
 	}
 }
 
@@ -71,8 +76,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keyMap.Quit):
 			return m, tea.Quit
 		case key.Matches(msg, m.keyMap.Help):
+			// Warning: User can't type ? anymore
 			m.help.ShowAll = !m.help.ShowAll
-		case key.Matches(msg, m.keyMap.Next):
+			return m, nil
+		case key.Matches(msg, m.keyMap.Add):
 			return m, m.inputs.FocusNext()
 		}
 	case tea.WindowSizeMsg:
@@ -94,6 +101,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.inputs, cmd = m.inputs.Update(msg)
 	cmds = append(cmds, cmd)
 
+	m.dirPicker, cmd = m.dirPicker.Update(msg)
+	cmds = append(cmds, cmd)
+
 	return m, tea.Batch(cmds...)
 }
 
@@ -106,7 +116,10 @@ func (m Model) View() string {
 	// inputMagnetView := styleMagnet.Render(m.inputMagnet.View())
 	// inputSubdirView := styleMagnet.Render(m.inputSubdir.View())
 
-	formView := lipgloss.JoinVertical(lipgloss.Left, m.inputs.View())
+	formView := lipgloss.JoinVertical(lipgloss.Left,
+		m.inputs.View(),
+		m.dirPicker.View(),
+	)
 	helpView := styleHelp.Render(m.help.View(m.keyMap))
 
 	heightForm := lipgloss.Height(formView)
@@ -132,4 +145,17 @@ func (m Model) View() string {
 		gapBottomView,
 		helpView,
 	)
+}
+
+func GetMagnetFromClipboard() string {
+	placeholder, err := clipboard.ReadAll()
+	// Clipboard empty
+	if err != nil {
+		placeholder = ""
+	}
+	// if strings.HasPrefix(placeholder, "magnet:?xt=") {
+	if strings.HasPrefix(placeholder, "foo") {
+		return placeholder
+	}
+	return ""
 }

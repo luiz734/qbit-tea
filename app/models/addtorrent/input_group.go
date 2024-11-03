@@ -42,7 +42,14 @@ func NewInputGroup(f ...textinput.Model) InputGroup {
 	if len(items) == 0 {
 		log.Fatal("Can't create empty input group")
 	}
-	items[0].Focus()
+
+	// Focus the first non empty
+	for index := range f {
+		if items[index].Value() == "" {
+			items[index].Focus()
+			break
+		}
+	}
 	return InputGroup{
 		inputGroup: items,
 	}
