@@ -3,7 +3,6 @@ package addtorrent
 import (
 	"fmt"
 	"strings"
-
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -37,7 +36,6 @@ func InitialModel(prevModel *tea.Model) Model {
 	ti.Placeholder = "magnet"
 	ti.Prompt = "Magnet: "
 	ti.PromptStyle = styleLabel
-	ti.Focus()
 	ti.CharLimit = 156
 
 	sd := textinput.New()
@@ -47,12 +45,12 @@ func InitialModel(prevModel *tea.Model) Model {
 	sd.CharLimit = 156
 
 	return Model{
-		prevModel:   prevModel,
-		help:        help.New(),
-		keyMap:      DefaultAddTorrentKeyMap(),
+		prevModel: prevModel,
+		help:      help.New(),
+		keyMap:    DefaultAddTorrentKeyMap(),
 		// inputMagnet: ti,
 		// inputSubdir: sd,
-		inputs:      NewInputGroup(ti, sd),
+		inputs: NewInputGroup(ti, sd),
 	}
 }
 
@@ -75,7 +73,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keyMap.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		case key.Matches(msg, m.keyMap.Next):
-			// m.inputMagnet.Blur()
 			return m, m.inputs.FocusNext()
 		}
 	case tea.WindowSizeMsg:
@@ -85,7 +82,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		magicNumber := 2
 		// styleError = styleError.Width(m.width - magicNumber)
 		styleMagnet = styleMagnet.Width(m.width - magicNumber)
-		// styleHelp = styleHelp.Width(m.width - magicNumber)
+		styleHelp = styleHelp.Width(m.width - magicNumber)
 
 		// We comment out here to render new lines manually
 		// Add spaces before and after later
