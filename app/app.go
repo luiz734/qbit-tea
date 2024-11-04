@@ -2,6 +2,7 @@ package app
 
 import (
 	"log"
+	"qbit-tea/app/models/addtorrent"
 	"qbit-tea/util"
 	"strings"
 	"time"
@@ -69,13 +70,14 @@ func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	// Trigger after user select a dir and magnet
-	case dirMsg:
-		if msg.magnet == "" || msg.downloadDir == "" {
+	case addtorrent.FormDataMsg:
+		log.Printf("got %+v", msg)
+		if msg.Magnet == "" || msg.DownloadDir == "" {
 			// User cancel the operation
 			return m, m.updateTimer.Init()
 		}
-		log.Printf("target dir: %s\nMagnet: %s\n", msg.downloadDir, msg.magnet)
-		addCommand, err := NewAddInDirCmdByMagnet(msg.magnet, msg.downloadDir)
+		log.Printf("target dir: %s\nMagnet: %s\n", msg.DownloadDir, msg.Magnet)
+		addCommand, err := NewAddInDirCmdByMagnet(msg.Magnet, msg.DownloadDir)
 		util.CheckError(err)
 		_, err = m.client.ExecuteCommand(addCommand)
 		util.CheckError(err)
@@ -110,8 +112,8 @@ func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "d":
 			return m, CmdRemove(m, false)
 		case "a":
-			s := NewDirModel(m)
-			return s.Update(nil)
+			s := addtorrent.InitialModel(m, m.windowSize.Width, m.windowSize.Height)
+			return s, s.Init()
 		}
 	}
 

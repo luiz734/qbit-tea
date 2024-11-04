@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"io"
 	"qbit-tea/config"
-	"sort"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/log"
 	funk "github.com/thoas/go-funk"
 )
 
@@ -60,7 +60,7 @@ func NewDickPickModel() *dirPickModel {
 	// Convert []string to []list.Item
 	// dirs := []string{JellyShowsDir, JellyMoviesDir}
 	dirs := append(config.Cfg.MoviesDirs, config.Cfg.ShowsDirs...)
-	sort.Strings(dirs)
+	// sort.Strings(dirs)
 	items := funk.Map(dirs, func(s string) list.Item {
 		return item(s)
 	}).([]list.Item)
@@ -127,5 +127,6 @@ func (m dirPickModel) Value() string {
 	if ok {
 		return string(item)
 	}
+    log.Warnf("Value is empty")
 	return ""
 }

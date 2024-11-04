@@ -2,6 +2,7 @@ package errorscreen
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -12,7 +13,7 @@ import (
 
 type Model struct {
 	// Go back to prev model
-	prevModel *tea.Model
+	prevModel tea.Model
 	// help
 	help help.Model
 	// Keymaps
@@ -27,18 +28,25 @@ type Model struct {
 	errDesc  string
 }
 
-func InitialModel(prevModel *tea.Model, errTitle, errDesc string) Model {
+func InitialModel(prevModel tea.Model, errTitle string, err error, width, height int) Model {
 	return Model{
 		prevModel: prevModel,
 		help:      help.New(),
 		keyMap:    DefaultKeyMap(),
 		errTitle:  errTitle,
-		errDesc:   errDesc,
+		errDesc:   err.Error(),
+		width:     width,
+		height:    height,
 	}
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(tea.ClearScreen)
+	return tea.Batch(
+		tea.ClearScreen,
+		func() tea.Msg {
+			return tea.WindowSizeMsg{Width: m.width, Height: m.height}
+		},
+	)
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -50,6 +58,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		log.Print(msg)
 		switch {
 		case key.Matches(msg, m.keyMap.Exit):
 			return m, tea.Quit
@@ -57,12 +66,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.help.ShowAll = !m.help.ShowAll
 			return m, tea.ClearScreen
 		default:
-			// No prevModel. Just quit the application
-			if m.prevModel == nil {
+			if _, ok := m.prevModel.(quitModel); ok {
 				return m, tea.Quit
 			}
-			// There is a prevModel? Go back to it
-			return *m.prevModel, nil
+			return m.prevModel, nil
 		}
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -117,3 +124,13 @@ func (m Model) View() string {
 		helpView,
 	)
 }
+
+func QuitModel() quitModel { return quitModel{} }
+
+// Used to avoid pointer
+// If the type of prevModel matches this type, quit the application
+type quitModel struct{}
+
+func (q quitModel) Init() tea.Cmd                       { return tea.Quit }
+func (q quitModel) Update(tea.Msg) (tea.Model, tea.Cmd) { return q, func() tea.Msg { return tea.Quit } }
+func (q quitModel) View() string                        { return "" }

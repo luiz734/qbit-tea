@@ -2,9 +2,11 @@ package addtorrent
 
 import (
 	"fmt"
+	errorscreen "qbit-tea/app/models/errorscreen"
 	"strings"
 
-	"github.com/atotto/clipboard"
+	"github.com/charmbracelet/log"
+
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -12,10 +14,22 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+type FormDataMsg struct {
+	DownloadDir string
+	Magnet      string
+}
+
+func formDataCmd(downloadrDir, magnet string) tea.Msg {
+	return FormDataMsg{
+		DownloadDir: downloadrDir,
+		Magnet:      magnet,
+	}
+}
+
 type Model struct {
 	// Go back to prev model
-	prevModel *tea.Model
-	// help
+	prevModel tea.Model
+	// Help
 	help help.Model
 	// Keymaps
 	keyMap AddTorrentKeymap
@@ -27,15 +41,15 @@ type Model struct {
 	inputs InputGroup
 }
 
-func InitialModel(prevModel *tea.Model) Model {
+func InitialModel(prevModel tea.Model, width, height int) Model {
 	ti := textinput.New()
-    // TOD o: placeholder + margin add new lines
+	// TOD o: placeholder + margin add new lines
 	ti.Placeholder = "paste the magnet link"
-    ti.Prompt = "Magnet: "
+	ti.Prompt = "Magnet: "
 	ti.CharLimit = 156
 	ti.PromptStyle = stylePrompt
-	ti.SetValue(GetMagnetFromClipboard())
-    ti.Width = 5
+	ti.SetValue(getMagnetFromClipboard())
+	ti.Width = 5
 	// ti.PlaceholderStyle = stylePlaceholder
 
 	sd := textinput.New()
@@ -44,22 +58,31 @@ func InitialModel(prevModel *tea.Model) Model {
 	sd.CharLimit = 156
 	sd.PromptStyle = stylePrompt
 	// sd.PlaceholderStyle = stylePlaceholder
-    sd.Width = 5
+	sd.Width = 5
 
 	return Model{
 		prevModel: prevModel,
 		help:      help.New(),
 		keyMap:    DefaultAddTorrentKeyMap(),
+		width:     width,
+		height:    height,
 		inputs: NewInputGroup(
 			NewDickPickModel(),
 			&TextInputFocuser{sd},
 			&TextInputFocuser{ti},
+			NewModelButton("Add"),
 		),
 	}
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(tea.ClearScreen, textinput.Blink)
+	return tea.Batch(
+		tea.ClearScreen,
+		textinput.Blink,
+		func() tea.Msg {
+			return tea.WindowSizeMsg{Width: m.width, Height: m.height}
+		},
+	)
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -80,6 +103,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case key.Matches(msg, m.keyMap.Next):
 			return m, m.inputs.FocusNext()
+		case key.Matches(msg, m.keyMap.Abort):
+			return m.prevModel, m.prevModel.Init()
+		case key.Matches(msg, m.keyMap.Add):
+			var formData *FormDataMsg
+			var err error
+			if formData, err = m.inputs.GetFormData(); err != nil {
+				errMsg := fmt.Sprintf("error getting form data: %v", err)
+				log.Debugf(errMsg)
+				s := errorscreen.InitialModel(m, "Error adding torrent", err, m.width, m.height)
+				return s, s.Init()
+			}
+			return m.prevModel, tea.Batch(
+				m.prevModel.Init(),
+				func() tea.Msg { return *formData },
+			)
 		}
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -87,9 +125,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		magicNumber := 2
 		styleHelp = styleHelp.Width(m.width - magicNumber)
-        // Don't update the width here
-        // The width depends on the prompt
-        // Update in input_group.go instead 
+		// Don't update the width here
+		// The width depends on the prompt
+		// Update in input_group.go instead
 		// styleUnfocused = styleUnfocused.Width(m.width - magicNumber)
 		// styleFocused = styleFocused.Width(m.width - magicNumber)
 
@@ -131,17 +169,4 @@ func (m Model) View() string {
 		gapBottomView,
 		helpView,
 	)
-}
-
-func GetMagnetFromClipboard() string {
-	placeholder, err := clipboard.ReadAll()
-	// Clipboard empty
-	if err != nil {
-		placeholder = ""
-	}
-	// if strings.HasPrefix(placeholder, "magnet:?xt=") {
-	if strings.HasPrefix(placeholder, "foo") {
-		return placeholder
-	}
-	return ""
 }

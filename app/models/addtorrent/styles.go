@@ -32,10 +32,10 @@ var (
 	titleStyle = lipgloss.NewStyle().
 			Foreground(colors.Pink).
 			Bold(true)
-            // This doesn't do anything
-            // Change styleTitleBar instead
-            // See update in dirpick.go
-            // Width(50)
+		// This doesn't do anything
+		// Change styleTitleBar instead
+		// See update in dirpick.go
+		// Width(50)
 	itemStyle = lipgloss.NewStyle().
 			PaddingLeft(4).
 			Foreground(colors.Surface2)
@@ -46,4 +46,14 @@ var (
 	// paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	// helpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
 	// quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
+)
+
+var (
+	styleButton = lipgloss.NewStyle().
+			AlignHorizontal(lipgloss.Center).
+			Width(10)
+	styleButtonFocused = lipgloss.NewStyle().
+				Foreground(colors.Pink).
+				AlignHorizontal(lipgloss.Center).
+				Width(10)
 )

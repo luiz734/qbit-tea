@@ -30,7 +30,7 @@ func CmdRemove(m AppModel, deleteData bool) tea.Cmd {
 		deleteCommand, err := transmission.NewDelCmd(torrent.ID, deleteData)
 		log.Printf("delete torrent %s", torrent.Name)
 		output, err := m.client.ExecuteCommand(deleteCommand)
-		log.Println(fmt.Sprintf("%s", output))
+		log.Println(fmt.Sprintf("%v", output))
 		util.CheckError(err)
 		return nil
 	}

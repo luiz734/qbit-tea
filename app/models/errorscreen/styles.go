@@ -20,6 +20,6 @@ var (
 		// BorderForeground(colors.Surface2).
 		Align(lipgloss.Center, lipgloss.Center)
 
-    // Inheritance?
+		// Inheritance?
 	styleHelp = models.StyleHelp
 )

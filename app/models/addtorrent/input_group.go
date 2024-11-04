@@ -2,6 +2,10 @@ package addtorrent
 
 import (
 	// "github.com/charmbracelet/bubbles/textinput"
+	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/log"
@@ -15,10 +19,10 @@ func (t *TextInputFocuser) Update(msg tea.Msg) (Focuser, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		// Again, width must be smaller thant the window
-        // This time, the width should fill the remaining space
-        // Prompt takes some, also border
-        // This 3 should be 2 (1 border on each side)
-        widthPromp := len(t.Model.Prompt)
+		// This time, the width should fill the remaining space
+		// Prompt takes some, also border
+		// This 3 should be 2 (1 border on each side)
+		widthPromp := len(t.Model.Prompt)
 		magicNumber := widthPromp + 3
 		t.Model.Width = msg.Width - magicNumber
 	}
@@ -147,4 +151,37 @@ func (g InputGroup) GetFocused() *Focuser {
 
 func (g InputGroup) GetFocusedIndex() int {
 	return g.focus
+}
+
+func (g InputGroup) getFieldValue(index int) (string, error) {
+	if index >= len(g.inputGroup) {
+		return "", fmt.Errorf("out of range: len = %d, index = %d", len(g.inputGroup), index)
+	}
+	return g.inputGroup[index].Value(), nil
+}
+
+func (g InputGroup) GetFormData() (*FormDataMsg, error) {
+	var err error
+	var downloadDir, subDir, magnet string
+	if downloadDir, err = g.getFieldValue(0); err != nil {
+		panic(err)
+	}
+	if subDir, err = g.getFieldValue(1); err != nil {
+		panic(err)
+	}
+	if magnet, err = g.getFieldValue(2); err != nil {
+		panic(err)
+	}
+	if _, err := os.Stat(downloadDir); err != nil {
+		return nil, fmt.Errorf("download dir %s doens't exists", downloadDir)
+	}
+	if !isMagnet(magnet) {
+		return nil, fmt.Errorf("invalid magnet link \"%s\"", magnet)
+	}
+
+	// TODO: check for errors
+	return &FormDataMsg{
+		DownloadDir: filepath.Join(downloadDir, subDir),
+		Magnet:      magnet,
+	}, nil
 }

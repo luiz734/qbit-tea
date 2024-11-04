@@ -40,12 +40,12 @@ func DefaultAddTorrentKeyMap() AddTorrentKeymap {
 			key.WithHelp("clear", "clear filed"),
 		),
 		Quit: key.NewBinding(
-			key.WithKeys("ctrl+c", "q"),
+			key.WithKeys("ctrl+c"),
 			key.WithHelp("quit", "quit application"),
 		),
 		Abort: key.NewBinding(
-			key.WithKeys("escape"),
-			key.WithHelp("escape", "cancel"),
+			key.WithKeys("esc"),
+			key.WithHelp("esc", "cancel"),
 		),
 		Help: key.NewBinding(
 			key.WithKeys("?"),
