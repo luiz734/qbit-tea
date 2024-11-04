@@ -16,7 +16,7 @@ A TUI for controlling **transmission-daemon**.
 ~~This tool was primarily made to use with [jellyfin](https://github.com/jellyfin/jellyfin). The main idea is to make adding torrents to media folders easier.~~
 
 > It was made for jellyfin, but now you can use to manage torrents in general.
-> If you want to see the original intent, check the README until commit [2848c75](https://github.com/luiz734/qbit-tea/commit/2848c758054be706c5d6ae34f33f84fe64222077).
+> If you want to see the original intent, check the README changes on commit [4a14867](https://github.com/luiz734/qbit-tea/commit/4a148673e400f046983dab7611212929090181e8).
 
 > Because of that, there is a lot of refactoring happening on the main branch. If you want to use this tool, it's better to stick with the release.
 
