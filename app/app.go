@@ -71,7 +71,7 @@ func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	// Trigger after user select a dir and magnet
 	case addtorrent.FormDataMsg:
-		log.Printf("got %+v", msg)
+		log.Printf("Got form data %+v", msg)
 		if msg.Magnet == "" || msg.DownloadDir == "" {
 			// User cancel the operation
 			return m, m.updateTimer.Init()
@@ -122,7 +122,14 @@ func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.torrentsCount = len(torrents)
 	util.CheckError(err)
 	torrents.SortByAddedDate(true)
-	m.torrent = &torrents[m.table.Cursor()]
+
+	// We dont use m.torrentsCount here because there
+	// is some delay before it actually add the torrent
+	// and we may get out of range
+	// len(torrent) is always accurate
+	if len(torrents) > 0 {
+		m.torrent = &torrents[m.table.Cursor()]
+	}
 
 	return m, cmd
 }

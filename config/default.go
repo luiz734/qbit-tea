@@ -1,12 +1,10 @@
 package config
 
 var defaultConfigToml = []byte(`
-movies_dirs = [
+# You can choose from before download
+# Items appear in the order they are declared
+download_dirs = [
     "/jellyfin/movies",
-]
-
-# Shows diretories will promp for a subdir before add
-shows_dirs = [
     "/jellyfin/shows",
 ]
 `)

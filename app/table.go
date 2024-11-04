@@ -22,7 +22,7 @@ func updateTableRows(m *AppModel, torrents transmission.Torrents) {
 	m.table.SetRows(rows)
 }
 
-func createTable(rows []table.Row, cursor int) table.Model {
+func createTable(rows []table.Row, _ int) table.Model {
 	columns := []table.Column{
 		{Title: "ETA", Width: 5},
 		{Title: "%", Width: 6},

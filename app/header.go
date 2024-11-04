@@ -17,6 +17,9 @@ func viewHeader(m AppModel) string {
 
 	// Left
 	var textLeft string
+	// Also render when torrent list is empty
+	// and there is no ratio to show
+	textLeft = leftStyle.Render("--")
 	ratio := 1.0
 	if m.torrent != nil {
 		ratio = m.torrent.UploadRatio

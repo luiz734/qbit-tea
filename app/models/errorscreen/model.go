@@ -2,7 +2,6 @@ package errorscreen
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -58,7 +57,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		log.Print(msg)
 		switch {
 		case key.Matches(msg, m.keyMap.Exit):
 			return m, tea.Quit

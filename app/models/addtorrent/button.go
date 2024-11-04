@@ -1,8 +1,6 @@
 package addtorrent
 
 import (
-	"log"
-
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -35,7 +33,6 @@ func (m *ModelButton) Update(msg tea.Msg) (Focuser, tea.Cmd) {
 		styleButton = styleButton.Margin(0, paddingHorizontal-magicNumber)
 		styleButtonFocused = styleButtonFocused.Margin(0, paddingHorizontal-magicNumber)
 	case tea.KeyMsg:
-		log.Print("hello")
 		space := " "
 		if msg.String() == space {
 			return m, SubmitCmd

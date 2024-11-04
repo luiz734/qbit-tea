@@ -11,8 +11,7 @@ import (
 
 type Config struct {
 	// Dirs user can download
-	MoviesDirs []string `toml:"movies_dirs" validate:"required"`
-	ShowsDirs  []string `toml:"shows_dirs" validate:"required"`
+	DownloadDirs []string `toml:"download_dirs" validate:"required"`
 }
 
 func ReadConfigFile(cli CLI) (*Config, error) {

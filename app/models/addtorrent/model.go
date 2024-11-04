@@ -97,7 +97,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.sendFormData()
 
 	case tea.KeyMsg:
-		log.Print(msg)
 		switch {
 		case key.Matches(msg, m.keyMap.Quit):
 			return m, tea.Quit

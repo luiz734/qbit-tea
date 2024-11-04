@@ -47,19 +47,11 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	fmt.Fprint(w, fn(str))
 }
 
-func isMovieDir(path string) bool {
-	for _, s := range config.Cfg.MoviesDirs {
-		if s == path {
-			return true
-		}
-	}
-	return false
-}
 
 func NewDickPickModel() *dirPickModel {
 	// Convert []string to []list.Item
 	// dirs := []string{JellyShowsDir, JellyMoviesDir}
-	dirs := append(config.Cfg.MoviesDirs, config.Cfg.ShowsDirs...)
+	dirs := config.Cfg.DownloadDirs
 	// sort.Strings(dirs)
 	items := funk.Map(dirs, func(s string) list.Item {
 		return item(s)

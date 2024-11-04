@@ -69,19 +69,10 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	fmt.Fprint(w, fn(str))
 }
 
-func isMovieDir(path string) bool {
-	for _, s := range config.Cfg.MoviesDirs {
-		if s == path {
-			return true
-		}
-	}
-	return false
-}
-
 func NewDirModel(prevModel tea.Model) dirModel {
 	// Convert []string to []list.Item
 	// dirs := []string{JellyShowsDir, JellyMoviesDir}
-	dirs := append(config.Cfg.MoviesDirs, config.Cfg.ShowsDirs...)
+	dirs := config.Cfg.DownloadDirs
 	items := funk.Map(dirs, func(s string) list.Item {
 		return item(s)
 	}).([]list.Item)
@@ -109,17 +100,7 @@ func (m *dirModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Called after user press enter
 	case inputMsg:
-		m.magent = string(msg)
-		if isMovieDir(m.downloadDir) {
-			return m.prevModel.Update(dirMsg{
-				downloadDir: m.downloadDir,
-				magnet:      m.magent,
-			})
-		} else {
-			s := NewDownloadSubDirModel(m)
-			return s.Update(nil)
-		}
-
+		panic("deprecated")
 		// Append the subdir to the path
 	case downloadSubDirMsg:
 		m.downloadDir = path.Join(m.downloadDir, string(msg))

@@ -37,8 +37,7 @@ func main() {
 		log.Fatalf("Error reading config file: %v", err)
 	}
 
-	log.Info("Found", "movies", config.Cfg.MoviesDirs)
-	log.Info("Found", "shows", config.Cfg.ShowsDirs)
+	log.Info("Found config", "download_dirs", config.Cfg.DownloadDirs)
 
 	log.Info("Trying connect ", "addres", address)
 	client := transmission.New(address, cli.User, cli.Password)
