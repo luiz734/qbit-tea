@@ -13,29 +13,14 @@ A TUI for controlling **transmission-daemon**.
 
 ## Use case
 
-This tool was primarily made to use with [jellyfin](https://github.com/jellyfin/jellyfin). The main idea is to make adding torrents to media folders easier.
+~~This tool was primarily made to use with [jellyfin](https://github.com/jellyfin/jellyfin). The main idea is to make adding torrents to media folders easier.~~
 
-I have two directories on a remote host: `/jellyfin/movies` and `/jellyfin/shows/`. Jellyfin automatically organizes your movies and shows based on the directory structure. For example:
+> It was made for jellyfin, but now you can use to manage torrents in general.
+> If you want to see the original intent, check the README until commit [2848c75](https://github.com/luiz734/qbit-tea/commit/2848c758054be706c5d6ae34f33f84fe64222077).
 
-```
-/jellyfin/movies
-    movieA
-    movieB
-/jellyfin/shows
-    showA
-        season1
-        season2
-    showB
-        season1
-```
+> Because of that, there is a lot of refactoring happening on the main branch. If you want to use this tool, it's better to stick with the release.
 
-Before adding torrents, you will be prompted to choose a movie or a show.
-If you choose `movie`, the download starts immediately.
-If you pick `show`, you will be asked for the show name (in the example, `showA` or `showB`).
-The torrent will be downloaded in the appropriate directory.
-
-> Don't worry about the name of the torrent being downloaded.
-> Jellyfin is smart enough to figure out which season is inside each directory, so no need to rename your downloads to `seasonX`.
+This tool is a generic TUI for transmission-daemon on linux. Good for managing tranmission-daemons running on servers.
 
 ## Installation
 
@@ -49,7 +34,26 @@ You only need `go`. All the dependencies will be downloaded during compilation.
 - Make sure `transmission-daemon` is running before starting the program.
 - Use the `DEBUG=1` environment variable to see log messages.
 
-## Customization
+### Keybinds
 
-At the moment, a lot of things are hardcoded (e.g. the jellyfin directories).
-I may change them in the future.
+- `k` `up` move up
+- `j` `down` move down
+- `a` add torrent
+- `u` update list manually (it updates each 2 seconds)
+- `d` remove torrent from transmission (the file will not be deleted from disk)
+- `p` pause/resume download
+
+## Config
+
+- You can define a set of directories to chose from before each download.
+- Config file is created automatically in `~/.config/qbit-tea/config.toml`.
+- The default config looks like this:
+
+```toml
+# You can choose from before download
+# Items appear in the order they are declared
+download_dirs = [
+    "/jellyfin/movies",
+    "/jellyfin/shows",
+]
+```
