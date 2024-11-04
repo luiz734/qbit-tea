@@ -142,6 +142,25 @@ func (g *InputGroup) FocusNext() tea.Cmd {
 	return g.inputGroup[g.focus].Focus()
 }
 
+func (g *InputGroup) FocusPrev() tea.Cmd {
+	if len(g.inputGroup) == 0 {
+		log.Debug("Empty input group")
+		return nil
+	}
+	g.focus -= 1
+	if g.focus < 0 {
+		g.focus = len(g.inputGroup) - 1
+	}
+	log.Debug("Update focused index", "index", g.focus)
+
+	// range makes a copy
+	// Use the index, not the copy
+	for index := range g.inputGroup {
+		g.inputGroup[index].Blur()
+	}
+	return g.inputGroup[g.focus].Focus()
+}
+
 func (g InputGroup) GetFocused() *Focuser {
 	if len(g.inputGroup) == 0 {
 		return nil

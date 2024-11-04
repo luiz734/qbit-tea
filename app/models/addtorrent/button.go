@@ -1,6 +1,16 @@
 package addtorrent
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	"log"
+
+	tea "github.com/charmbracelet/bubbletea"
+)
+
+type SubmitButton struct{}
+
+func SubmitCmd() tea.Msg {
+	return SubmitButton{}
+}
 
 type ModelButton struct {
 	label   string
@@ -24,6 +34,12 @@ func (m *ModelButton) Update(msg tea.Msg) (Focuser, tea.Cmd) {
 		paddingHorizontal := (msg.Width) / 2
 		styleButton = styleButton.Margin(0, paddingHorizontal-magicNumber)
 		styleButtonFocused = styleButtonFocused.Margin(0, paddingHorizontal-magicNumber)
+	case tea.KeyMsg:
+		log.Print("hello")
+		space := " "
+		if msg.String() == space {
+			return m, SubmitCmd
+		}
 	}
 
 	return m, nil

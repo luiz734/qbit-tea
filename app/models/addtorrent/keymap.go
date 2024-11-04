@@ -4,6 +4,7 @@ import "github.com/charmbracelet/bubbles/key"
 
 type AddTorrentKeymap struct {
 	Next  key.Binding
+	Prev  key.Binding
 	Add   key.Binding
 	Clear key.Binding
 	Quit  key.Binding
@@ -30,6 +31,10 @@ func DefaultAddTorrentKeyMap() AddTorrentKeymap {
 		Next: key.NewBinding(
 			key.WithKeys("tab"),
 			key.WithHelp("tab", "next field"),
+		),
+		Prev: key.NewBinding(
+			key.WithKeys("shift+tab"),
+			key.WithHelp("shift+tab", "previous field"),
 		),
 		Add: key.NewBinding(
 			key.WithKeys("enter"),

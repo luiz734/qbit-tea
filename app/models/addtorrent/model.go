@@ -93,7 +93,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	_ = cmd
 
 	switch msg := msg.(type) {
+	case SubmitButton:
+		return m.sendFormData()
+
 	case tea.KeyMsg:
+		log.Print(msg)
 		switch {
 		case key.Matches(msg, m.keyMap.Quit):
 			return m, tea.Quit
@@ -103,21 +107,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case key.Matches(msg, m.keyMap.Next):
 			return m, m.inputs.FocusNext()
+		case key.Matches(msg, m.keyMap.Prev):
+			return m, m.inputs.FocusPrev()
 		case key.Matches(msg, m.keyMap.Abort):
 			return m.prevModel, m.prevModel.Init()
 		case key.Matches(msg, m.keyMap.Add):
-			var formData *FormDataMsg
-			var err error
-			if formData, err = m.inputs.GetFormData(); err != nil {
-				errMsg := fmt.Sprintf("error getting form data: %v", err)
-				log.Debugf(errMsg)
-				s := errorscreen.InitialModel(m, "Error adding torrent", err, m.width, m.height)
-				return s, s.Init()
-			}
-			return m.prevModel, tea.Batch(
-				m.prevModel.Init(),
-				func() tea.Msg { return *formData },
-			)
+			return m.sendFormData()
 		}
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -168,5 +163,20 @@ func (m Model) View() string {
 		formView,
 		gapBottomView,
 		helpView,
+	)
+}
+
+func (m Model) sendFormData() (tea.Model, tea.Cmd) {
+	var formData *FormDataMsg
+	var err error
+	if formData, err = m.inputs.GetFormData(); err != nil {
+		errMsg := fmt.Sprintf("error getting form data: %v", err)
+		log.Debugf(errMsg)
+		s := errorscreen.InitialModel(m, "Error adding torrent", err, m.width, m.height)
+		return s, s.Init()
+	}
+	return m.prevModel, tea.Batch(
+		m.prevModel.Init(),
+		func() tea.Msg { return *formData },
 	)
 }
