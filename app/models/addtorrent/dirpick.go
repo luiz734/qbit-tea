@@ -70,8 +70,9 @@ func NewDickPickModel() *dirPickModel {
 	l.SetShowTitle(true)
 	l.SetShowHelp(false)
 	l.SetShowStatusBar(false)
-	l.Styles.Title = titleStyle
-	l.Title = "Download direcotry"
+	l.Title = "Download directory"
+    l.Styles.Title = titleStyle
+    l.SetWidth(len(l.Title) + 10)
 
 	return &dirPickModel{
 		list: l,
@@ -83,8 +84,13 @@ type inputMsg string
 func (m *dirPickModel) Update(msg tea.Msg) (Focuser, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-        // This affects the title, but doesn't make the model bigger
-		m.list.SetWidth(msg.Width)
+        // This works fine
+        // Changing Styles.Title does nothing to the width
+        magicNumber := 2
+        m.list.Styles.TitleBar = m.list.Styles.TitleBar.Width(msg.Width - magicNumber)
+
+		// m.list.SetWidth(msg.Width)
+		_ = msg
 		return m, nil
 	}
 	if !m.focused {

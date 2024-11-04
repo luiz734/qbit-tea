@@ -30,9 +30,12 @@ var (
 // Directory picker
 var (
 	titleStyle = lipgloss.NewStyle().
-			MarginLeft(0).
 			Foreground(colors.Pink).
 			Bold(true)
+            // This doesn't do anything
+            // Change styleTitleBar instead
+            // See update in dirpick.go
+            // Width(50)
 	itemStyle = lipgloss.NewStyle().
 			PaddingLeft(4).
 			Foreground(colors.Surface2)
