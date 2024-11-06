@@ -2,6 +2,7 @@ package errorscreen
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -57,12 +58,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		log.Printf("%+v", msg)
 		switch {
-		case key.Matches(msg, m.keyMap.Exit):
+		case key.Matches(msg, m.keyMap.Quit):
 			return m, tea.Quit
 		case key.Matches(msg, m.keyMap.Help):
 			m.help.ShowAll = !m.help.ShowAll
 			return m, tea.ClearScreen
+
+		// case key.Matches(msg, m.keyMap.Exit):
+		// return m, tea.Quit
+		// ^^^
+		// Used only to show in help view
+		// Esc or any other key should return
+		// or quit, so we use default:
 		default:
 			if _, ok := m.prevModel.(quitModel); ok {
 				return m, tea.Quit

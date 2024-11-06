@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"qbit-tea/app/models/addtorrent"
+	"qbit-tea/app/models/errorscreen"
 	"qbit-tea/util"
 	"strings"
 	"time"
@@ -66,7 +67,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case key.Matches(msg, m.keymap.Help):
 			m.help.ShowAll = !m.help.ShowAll
-			return m, nil
+			// Return tea.ClearScreen fix a bug
+			// that makes the help view not render
+			// correctly after toggle
+			return m, tea.ClearScreen
 		// case key.Matches(msg, m.keymap.Up):
 		// 	return m, tea.Quit
 		// case key.Matches(msg, m.keymap.Down):
@@ -81,6 +85,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, CmdRemove(m, false)
 		case key.Matches(msg, m.keymap.Add):
 			s := addtorrent.InitialModel(m, m.windowSize.Width, m.windowSize.Height)
+			return s, s.Init()
+		case key.Matches(msg, m.keymap.Info):
+			// TODO: implement info screen with metadata
+			err := fmt.Errorf("This feature is not implemented yet")
+			s := errorscreen.InitialModel(m, "Not implemented", err, m.windowSize.Width, m.windowSize.Height)
 			return s, s.Init()
 		}
 	// Trigger after user select a dir and magnet
@@ -113,6 +122,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.WindowSizeMsg:
+		log.Print(msg)
 		m.windowSize = windowSize{msg.Width, msg.Height}
 		updateTableSize(&m.table, m.windowSize)
 		m.help.Width = msg.Width
@@ -151,9 +161,12 @@ func (m Model) View() string {
 		torrentsView = "<add some torrents>"
 	} else {
 		torrentsView = m.table.View()
+		// Adding a new line fix first
+		// row of help not showing
+		torrentsView += "\n"
 	}
 	// Help
-	helpView := styleHelp.Render(m.help.View(m.keymap))
+	helpView := m.help.View(m.keymap)
 	// Gap
 	headerHeight := lipgloss.Height(headerView)
 	torrentsHeight := lipgloss.Height(torrentsView)

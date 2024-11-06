@@ -9,6 +9,7 @@ type Keymap struct {
 	Add    key.Binding
 	Toggle key.Binding
 	Delete key.Binding
+	Info   key.Binding
 
 	Quit key.Binding
 	Help key.Binding
@@ -20,8 +21,9 @@ func (k Keymap) ShortHelp() []key.Binding {
 
 func (k Keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Up, k.Down, k.Add, k.Delete},      // first column
-		{k.Toggle, k.Update, k.Quit, k.Help}, // second column
+		{k.Up, k.Down, k.Add},          // first column
+		{k.Delete, k.Toggle, k.Update}, // second column
+		{k.Info, k.Help, k.Quit},       // ...
 	}
 }
 
@@ -51,6 +53,10 @@ func DefaultKeymap() Keymap {
 		Delete: key.NewBinding(
 			key.WithKeys("d"),
 			key.WithHelp("d", "delete"),
+		),
+		Info: key.NewBinding(
+			key.WithKeys("i"),
+			key.WithHelp("i", "show info"),
 		),
 		Quit: key.NewBinding(
 			key.WithKeys("ctrl+c"),
