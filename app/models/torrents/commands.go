@@ -2,8 +2,7 @@ package torrents
 
 import (
 	"fmt"
-	"log"
-	"qbit-tea/util"
+	"github.com/charmbracelet/log"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/tubbebubbe/transmission"
@@ -30,19 +29,34 @@ func CmdRemove(m Model, deleteData bool) tea.Cmd {
 		deleteCommand, err := transmission.NewDelCmd(torrent.ID, deleteData)
 		log.Printf("delete torrent %s", torrent.Name)
 		output, err := m.client.ExecuteCommand(deleteCommand)
-		log.Println(fmt.Sprintf("%v", output))
-		util.CheckError(err)
+		log.Printf(fmt.Sprintf("%v", output))
+		if err != nil {
+			panic(err)
+		}
+		// util.CheckError(err)
 		return nil
 	}
 }
 
 type MsgUpdate struct{ Torrents transmission.Torrents }
+type MsgError struct {
+	title string
+	err   error
+}
 
 func CmdUpdate(m Model) tea.Cmd {
+	torrents, err := m.client.GetTorrents()
+	if err != nil {
+		log.Error("Can't update: %v", err)
+		return func() tea.Msg {
+			return MsgError{
+				title: "Can't reach transmission-daemon",
+				err:   err,
+			}
+		}
+	}
 	return func() tea.Msg {
-		torrents, err := m.client.GetTorrents()
-		// log.Info("GET torrent from transmission")
-		util.CheckError(err)
 		return MsgUpdate{Torrents: torrents}
 	}
+
 }

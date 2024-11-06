@@ -5,7 +5,6 @@ import (
 	"log"
 	"qbit-tea/app/models/addtorrent"
 	"qbit-tea/app/models/errorscreen"
-	"qbit-tea/util"
 	"strings"
 	"time"
 
@@ -101,9 +100,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		log.Printf("target dir: %s\nMagnet: %s\n", msg.DownloadDir, msg.Magnet)
 		addCommand, err := NewAddInDirCmdByMagnet(msg.Magnet, msg.DownloadDir)
-		util.CheckError(err)
+
+		if err != nil {
+			panic(err)
+		}
 		_, err = m.client.ExecuteCommand(addCommand)
-		util.CheckError(err)
+
+		if err != nil {
+			panic(err)
+		}
 		log.Printf("add torrent %s", msg)
 		m.updateTimer = timer.NewWithInterval(Timeout, time.Millisecond)
 		return m, m.updateTimer.Init()
@@ -120,6 +125,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case MsgUpdate:
 		updateTableRows(&m, msg.Torrents)
 		return m, nil
+
+	case MsgError:
+		s := errorscreen.InitialModel(m, msg.title, msg.err, m.windowSize.Width, m.windowSize.Height)
+		return s, s.Init()
 
 	case tea.WindowSizeMsg:
 		log.Print(msg)
@@ -138,7 +147,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.table, cmd = m.table.Update(msg)
 	torrents, err := m.client.GetTorrents()
 	m.torrentsCount = len(torrents)
-	util.CheckError(err)
+
+	if err != nil {
+		panic(err)
+	}
 	torrents.SortByAddedDate(true)
 
 	// We dont use m.torrentsCount here because there

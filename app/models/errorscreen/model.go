@@ -29,15 +29,23 @@ type Model struct {
 }
 
 func InitialModel(prevModel tea.Model, errTitle string, err error, width, height int) Model {
-	return Model{
+	m := Model{
 		prevModel: prevModel,
 		help:      help.New(),
 		keyMap:    DefaultKeyMap(),
 		errTitle:  errTitle,
 		errDesc:   err.Error(),
-		width:     width,
-		height:    height,
 	}
+	// Becuase the window size is unknown before the
+	// program start, it calls with 0,0 from main.go
+	// In this case, we ignore it
+	// The width and height will be set by bubbletea
+	if width != 0 && height != 0 {
+		m.width = width
+		m.height = height
+	}
+
+	return m
 }
 
 func (m Model) Init() tea.Cmd {
