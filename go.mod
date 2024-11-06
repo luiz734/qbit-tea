@@ -11,6 +11,7 @@ require (
 	github.com/charmbracelet/log v0.4.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/go-playground/validator/v10 v10.22.1
+	github.com/muesli/reflow v0.3.0
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/thoas/go-funk v0.9.3
 	github.com/tubbebubbe/transmission v0.0.0-20170711213924-fa5f39e4eddd

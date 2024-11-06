@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/reflow/wordwrap"
 )
 
 type Model struct {
@@ -33,8 +34,8 @@ func InitialModel(prevModel tea.Model, errTitle string, err error, width, height
 		prevModel: prevModel,
 		help:      help.New(),
 		keyMap:    DefaultKeyMap(),
-		errTitle:  errTitle,
-		errDesc:   err.Error(),
+		errTitle:  wrapText(errTitle, width),
+		errDesc:   wrapText(err.Error(), width),
 	}
 	// Becuase the window size is unknown before the
 	// program start, it calls with 0,0 from main.go
@@ -138,6 +139,18 @@ func (m Model) View() string {
 		gapBottomView,
 		helpView,
 	)
+}
+
+func wrapText(errDesc string, limit int) string {
+	errDesc += " "
+
+	w := wordwrap.NewWriter(limit)
+	defer w.Close()
+	w.Breakpoints = []rune{' '}
+	w.Newline = []rune{'\n'}
+	w.Write([]byte(errDesc))
+
+	return w.String()
 }
 
 func QuitModel() quitModel { return quitModel{} }
