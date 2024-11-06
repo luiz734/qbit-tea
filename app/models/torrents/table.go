@@ -1,4 +1,4 @@
-package app
+package torrents
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/tubbebubbe/transmission"
 )
 
-func updateTableRows(m *AppModel, torrents transmission.Torrents) {
+func updateTableRows(m *Model, torrents transmission.Torrents) {
     torrents.SortByAddedDate(true)
 	rows := []table.Row{}
 	for _, t := range torrents {
@@ -38,7 +38,6 @@ func createTable(rows []table.Row, _ int) table.Model {
 		table.WithFocused(true),
 		table.WithHeight(6),
 	)
-	// t.SetCursor(cursor)
 
 	return t
 }

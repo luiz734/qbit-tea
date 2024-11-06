@@ -1,10 +1,19 @@
-package app
+package torrents
 
 import (
 	"fmt"
 
 	"github.com/charmbracelet/bubbles/table"
+	"github.com/tubbebubbe/transmission"
 )
+
+func NewAddInDirCmdByMagnet(magnetLink string, path string) (*transmission.Command, error) {
+	cmd, _ := transmission.NewAddCmd()
+	cmd.Arguments.Filename = magnetLink
+	// Can't check if it's a dir on remote hosts
+	cmd.Arguments.DownloadDir = path
+	return cmd, nil
+}
 
 func formatTime(seconds int) string {
 	var hours, minutes int

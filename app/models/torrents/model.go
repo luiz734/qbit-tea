@@ -1,12 +1,15 @@
-package app
+package torrents
 
 import (
+	"fmt"
 	"log"
 	"qbit-tea/app/models/addtorrent"
 	"qbit-tea/util"
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
@@ -21,27 +24,31 @@ type windowSize struct {
 	Height int
 }
 
-type AppModel struct {
+type Model struct {
 	client      *transmission.TransmissionClient
 	address     string
 	updateTimer timer.Model
 	table       table.Model
 	windowSize  windowSize
+	help        help.Model
+	keymap      Keymap
 	// Selected row. Can be null before the data is loaded
 	torrentsCount int
 	torrent       *transmission.Torrent
 }
 
-func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient, address string) AppModel {
-	return AppModel{
+func NewModel(updateTimer timer.Model, client *transmission.TransmissionClient, address string) Model {
+	return Model{
 		updateTimer: updateTimer,
 		client:      client,
 		table:       createTable([]table.Row{}, 0),
 		address:     address,
+		help:        help.New(),
+		keymap:      DefaultKeymap(),
 	}
 }
 
-func (m AppModel) Init() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		m.updateTimer.Init(),
 		CmdUpdate(m),
@@ -49,26 +56,33 @@ func (m AppModel) Init() tea.Cmd {
 	)
 }
 
-func NewAddInDirCmdByMagnet(magnetLink string, path string) (*transmission.Command, error) {
-	cmd, _ := transmission.NewAddCmd()
-	cmd.Arguments.Filename = magnetLink
-	// Can't check if it's a dir on remote hosts
-	cmd.Arguments.DownloadDir = path
-	return cmd, nil
-}
-
-func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// User should always be able to quit
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
-			return m, tea.Quit
-		}
-	}
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.keymap.Quit):
+			return m, tea.Quit
+		case key.Matches(msg, m.keymap.Help):
+			m.help.ShowAll = !m.help.ShowAll
+			return m, nil
+		// case key.Matches(msg, m.keymap.Up):
+		// 	return m, tea.Quit
+		// case key.Matches(msg, m.keymap.Down):
+		// 	return m, tea.Quit
+		case key.Matches(msg, m.keymap.Update):
+			return m, CmdUpdate(m)
+		case key.Matches(msg, m.keymap.Toggle):
+			return m, CmdToggle(m)
+		case key.Matches(msg, m.keymap.Delete):
+			return m, CmdRemove(m, false)
+		case key.Matches(msg, m.keymap.Delete):
+			return m, CmdRemove(m, false)
+		case key.Matches(msg, m.keymap.Add):
+			s := addtorrent.InitialModel(m, m.windowSize.Width, m.windowSize.Height)
+			return s, s.Init()
+		}
 	// Trigger after user select a dir and magnet
 	case addtorrent.FormDataMsg:
 		log.Printf("Got form data %+v", msg)
@@ -101,21 +115,15 @@ func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.windowSize = windowSize{msg.Width, msg.Height}
 		updateTableSize(&m.table, m.windowSize)
+		m.help.Width = msg.Width
 		return m, tea.Batch(CmdUpdate(m), tea.ClearScreen)
-
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "u":
-			return m, CmdUpdate(m)
-		case "p":
-			return m, CmdToggle(m)
-		case "d":
-			return m, CmdRemove(m, false)
-		case "a":
-			s := addtorrent.InitialModel(m, m.windowSize.Width, m.windowSize.Height)
-			return s, s.Init()
-		}
 	}
+
+	// Update styles
+	sectionWidth := m.windowSize.Width / 3
+	leftStyle = leftStyle.Width(sectionWidth)
+	centerStyle = centerStyle.Width(sectionWidth)
+	rightStyle = rightStyle.Width(sectionWidth)
 
 	m.table, cmd = m.table.Update(msg)
 	torrents, err := m.client.GetTorrents()
@@ -134,32 +142,33 @@ func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m AppModel) EmptyTorrentView(width, height int, helpStyle lipgloss.Style) string {
-	style := helpStyle.
-		Width(width).
-		Height(height).
-		AlignHorizontal(lipgloss.Center)
-	return style.Render("<add some torrents>")
-}
-
-func (m AppModel) View() string {
-	var output strings.Builder
-
-	header := viewHeader(m)
-	output.WriteString(header)
-	output.WriteString("\n\n")
-
+func (m Model) View() string {
+	// Header
+	headerView := viewHeader(m)
+	// Torrents
+	var torrentsView string
 	if m.torrentsCount == 0 {
-		// 2 because newlines
-		emptyHeight := m.windowSize.Height - lipgloss.Height(header) - lipgloss.Height(m.table.HelpView()) - 2
-		helpStyle := m.table.Help.Styles.ShortKey
-		output.WriteString(m.EmptyTorrentView(m.windowSize.Width, emptyHeight, helpStyle))
+		torrentsView = "<add some torrents>"
 	} else {
-		output.WriteString(m.table.View())
+		torrentsView = m.table.View()
 	}
+	// Help
+	helpView := styleHelp.Render(m.help.View(m.keymap))
+	// Gap
+	headerHeight := lipgloss.Height(headerView)
+	torrentsHeight := lipgloss.Height(torrentsView)
+	helpHeight := lipgloss.Height(helpView)
+	magicNumber := 2
+	gapBottom := m.windowSize.Height - headerHeight - torrentsHeight - helpHeight + magicNumber
+	if gapBottom < 0 {
+		gapBottom = 0
+	}
+	gapBottomView := strings.Repeat("\n", gapBottom)
 
-	output.WriteString("\n\n")
-	output.WriteString(m.table.HelpView())
-
-	return output.String()
+	return fmt.Sprint(
+		headerView,
+		torrentsView,
+		gapBottomView,
+		helpView,
+	)
 }

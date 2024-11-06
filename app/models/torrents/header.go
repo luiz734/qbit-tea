@@ -1,20 +1,13 @@
-package app
+package torrents
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 )
 
-func viewHeader(m AppModel) string {
-	sectionWidth := m.windowSize.Width / 3
-	leftStyle := lipgloss.NewStyle().
-		Width(sectionWidth).Align(lipgloss.Left).MarginLeft(1)
-	centerStyle := lipgloss.NewStyle().
-		Width(sectionWidth).Align(lipgloss.Center).Margin(0)
-	rightStyle := lipgloss.NewStyle().
-		Width(sectionWidth).Align(lipgloss.Right).MarginRight(1)
-
+func viewHeader(m Model) string {
 	// Left
 	var textLeft string
 	// Also render when torrent list is empty
@@ -28,8 +21,6 @@ func viewHeader(m AppModel) string {
 	}
 
 	// Center
-	var styleAddress = lipgloss.NewStyle().
-		Align(lipgloss.Center).Bold(true)
 	address := styleAddress.Render(fmt.Sprintf("%s", m.address))
 	textCenter := centerStyle.Render(address)
 
@@ -42,5 +33,11 @@ func viewHeader(m AppModel) string {
 	}
 	textRight := rightStyle.Render(r)
 
-	return lipgloss.JoinHorizontal(lipgloss.Top, textLeft, textCenter, textRight)
+	headerView := lipgloss.JoinHorizontal(lipgloss.Top, textLeft, textCenter, textRight)
+	bottomGapView := strings.Repeat("\n", 2)
+
+	return fmt.Sprint(
+		headerView,
+		bottomGapView,
+	)
 }

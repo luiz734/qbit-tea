@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"qbit-tea/app"
-	errorscreen "qbit-tea/app/models/errorscreen"
+	"qbit-tea/app/models/errorscreen"
+	"qbit-tea/app/models/torrents"
 	"qbit-tea/config"
 	"time"
 
@@ -52,7 +52,7 @@ func main() {
 		program = tea.NewProgram(errorscreen.InitialModel(errorscreen.QuitModel(), errMsg, fmt.Errorf(errDesc), 0, 0))
 		// program = tea.NewProgram(addtorrent.InitialModel(nil))
 	} else {
-		program = tea.NewProgram(app.NewModel(timer.NewWithInterval(app.Timeout, time.Millisecond), &client, cli.Address))
+		program = tea.NewProgram(torrents.NewModel(timer.NewWithInterval(torrents.Timeout, time.Millisecond), &client, cli.Address))
 	}
 	program.Run()
 

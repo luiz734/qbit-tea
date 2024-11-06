@@ -1,4 +1,4 @@
-package app
+package torrents
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/tubbebubbe/transmission"
 )
 
-func CmdToggle(m AppModel) tea.Cmd {
+func CmdToggle(m Model) tea.Cmd {
 	return func() tea.Msg {
 		torrent := *m.torrent
 		switch torrent.Status {
@@ -24,7 +24,7 @@ func CmdToggle(m AppModel) tea.Cmd {
 	}
 }
 
-func CmdRemove(m AppModel, deleteData bool) tea.Cmd {
+func CmdRemove(m Model, deleteData bool) tea.Cmd {
 	return func() tea.Msg {
 		torrent := *m.torrent
 		deleteCommand, err := transmission.NewDelCmd(torrent.ID, deleteData)
@@ -33,5 +33,16 @@ func CmdRemove(m AppModel, deleteData bool) tea.Cmd {
 		log.Println(fmt.Sprintf("%v", output))
 		util.CheckError(err)
 		return nil
+	}
+}
+
+type MsgUpdate struct{ Torrents transmission.Torrents }
+
+func CmdUpdate(m Model) tea.Cmd {
+	return func() tea.Msg {
+		torrents, err := m.client.GetTorrents()
+		// log.Info("GET torrent from transmission")
+		util.CheckError(err)
+		return MsgUpdate{Torrents: torrents}
 	}
 }

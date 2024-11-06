@@ -1,4 +1,4 @@
-package app
+package torrents
 
 import "github.com/tubbebubbe/transmission"
 
