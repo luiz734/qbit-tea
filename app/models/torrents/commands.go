@@ -2,6 +2,8 @@ package torrents
 
 import (
 	"fmt"
+	"qbit-tea/app/models"
+
 	"github.com/charmbracelet/log"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -40,8 +42,9 @@ func CmdRemove(m Model, deleteData bool) tea.Cmd {
 
 type MsgUpdate struct{ Torrents transmission.Torrents }
 type MsgError struct {
-	title string
-	err   error
+	title     string
+	err       error
+	prevModel tea.Model
 }
 
 func CmdUpdate(m Model) tea.Cmd {
@@ -50,8 +53,9 @@ func CmdUpdate(m Model) tea.Cmd {
 		log.Error("Can't update: %v", err)
 		return func() tea.Msg {
 			return MsgError{
-				title: "Can't reach transmission-daemon",
-				err:   err,
+				title:     "Can't reach transmission-daemon",
+				err:       err,
+				prevModel: models.GetQuitModel(),
 			}
 		}
 	}

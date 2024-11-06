@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"qbit-tea/app/models"
 	"qbit-tea/app/models/errorscreen"
 	"qbit-tea/app/models/torrents"
 	"qbit-tea/config"
@@ -49,7 +50,7 @@ func main() {
 		log.Errorf("Can't connect to transmission-daemon.\nIs the daemon running?\n%v", err)
 		errMsg := "Error launching program"
 		errDesc := "Is the daemon running?\nIs the address correct?"
-		program = tea.NewProgram(errorscreen.InitialModel(errorscreen.QuitModel(), errMsg, fmt.Errorf(errDesc), 0, 0))
+		program = tea.NewProgram(errorscreen.InitialModel(models.GetQuitModel(), errMsg, fmt.Errorf(errDesc), 0, 0))
 		// program = tea.NewProgram(addtorrent.InitialModel(nil))
 	} else {
 		program = tea.NewProgram(torrents.NewModel(timer.NewWithInterval(torrents.Timeout, time.Millisecond), &client, cli.Address))

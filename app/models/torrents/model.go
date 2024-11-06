@@ -127,7 +127,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case MsgError:
-		s := errorscreen.InitialModel(m, msg.title, msg.err, m.windowSize.Width, m.windowSize.Height)
+		s := errorscreen.InitialModel(msg.prevModel, msg.title, msg.err, m.windowSize.Width, m.windowSize.Height)
 		return s, s.Init()
 
 	case tea.WindowSizeMsg:

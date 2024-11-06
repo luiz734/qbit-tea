@@ -3,6 +3,7 @@ package errorscreen
 import (
 	"fmt"
 	"log"
+	"qbit-tea/app/models"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -82,7 +83,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Esc or any other key should return
 		// or quit, so we use default:
 		default:
-			if _, ok := m.prevModel.(quitModel); ok {
+			if _, ok := m.prevModel.(models.QuitModel); ok {
 				return m, tea.Quit
 			}
 			return m.prevModel, nil
@@ -152,13 +153,3 @@ func wrapText(errDesc string, limit int) string {
 
 	return w.String()
 }
-
-func QuitModel() quitModel { return quitModel{} }
-
-// Used to avoid pointer
-// If the type of prevModel matches this type, quit the application
-type quitModel struct{}
-
-func (q quitModel) Init() tea.Cmd                       { return tea.Quit }
-func (q quitModel) Update(tea.Msg) (tea.Model, tea.Cmd) { return q, func() tea.Msg { return tea.Quit } }
-func (q quitModel) View() string                        { return "" }
