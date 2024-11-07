@@ -26,8 +26,8 @@ type windowSize struct {
 }
 
 type Model struct {
-	client      *transmission.TransmissionClient
-	address     string
+	client  *transmission.TransmissionClient
+	address string
 	updateTimer timer.Model
 	table       table.Model
 	windowSize  windowSize
@@ -117,6 +117,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 
 	case timer.TimeoutMsg:
+        log.Printf("Tick")
 		m.updateTimer.Timeout = Timeout
 		m.updateTimer.Init()
 		return m, CmdUpdate(m)

@@ -70,7 +70,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.help.ShowAll = !m.help.ShowAll
 			return m, tea.ClearScreen
 		case key.Matches(msg, m.keyMap.Exit):
-			return m.prevModel, nil
+			return m.prevModel, m.prevModel.Init()
 		}
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
