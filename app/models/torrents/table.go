@@ -2,6 +2,7 @@ package torrents
 
 import (
 	"fmt"
+	"qbit-tea/app/models"
 
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/dustin/go-humanize"
@@ -9,12 +10,12 @@ import (
 )
 
 func updateTableRows(m *Model, torrents transmission.Torrents) {
-    torrents.SortByAddedDate(true)
+	torrents.SortByAddedDate(true)
 	rows := []table.Row{}
 	for _, t := range torrents {
 		strEta := formatTime(t.Eta)
 		strPercentDone := fmt.Sprintf("%.1f", t.PercentDone*100.0)
-		strStatus := TorrentStatus(t)
+		strStatus := models.TorrentStatus(t)
 		strDown := humanize.Bytes(uint64(t.RateDownload))
 		strUp := humanize.Bytes(uint64(t.RateUpload))
 		rows = append(rows, table.Row{strEta, strPercentDone, strStatus, strDown, strUp, t.Name})

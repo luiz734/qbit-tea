@@ -14,10 +14,10 @@ func CmdToggle(m Model) tea.Cmd {
 	return func() tea.Msg {
 		torrent := *m.torrent
 		switch torrent.Status {
-		case StatusStopped:
+		case models.StatusStopped:
 			m.client.StartTorrent(torrent.ID)
 			log.Printf("start torrent %s", torrent.Name)
-		case StatusDownloading, StatusSeeding:
+		case models.StatusDownloading, models.StatusSeeding:
 			m.client.StopTorrent(torrent.ID)
 			log.Printf("stop torrent %s", torrent.Name)
 		}

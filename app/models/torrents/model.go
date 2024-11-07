@@ -5,6 +5,7 @@ import (
 	"log"
 	"qbit-tea/app/models/addtorrent"
 	"qbit-tea/app/models/errorscreen"
+	"qbit-tea/app/models/torrentinfo"
 	"strings"
 	"time"
 
@@ -86,9 +87,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			s := addtorrent.InitialModel(m, m.windowSize.Width, m.windowSize.Height)
 			return s, s.Init()
 		case key.Matches(msg, m.keymap.Info):
-			// TODO: implement info screen with metadata
-			err := fmt.Errorf("This feature is not implemented yet")
-			s := errorscreen.InitialModel(m, "Not implemented", err, m.windowSize.Width, m.windowSize.Height)
+			s := torrentinfo.InitialModel(m, m.windowSize.Width, m.windowSize.Height, m.torrent)
 			return s, s.Init()
 		}
 	// Trigger after user select a dir and magnet

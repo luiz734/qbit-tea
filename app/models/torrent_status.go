@@ -1,4 +1,4 @@
-package torrents
+package models
 
 import "github.com/tubbebubbe/transmission"
 
