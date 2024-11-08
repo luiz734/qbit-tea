@@ -9,6 +9,7 @@ A TUI for controlling **transmission-daemon**.
 - Add new torrents using magnet links
 - Remove, pause, and resume torrents
 - Overview of all torrents
+- Setup a list of download directories using the config file
 - Supports daemon running on a remote host
 
 ## Use case
@@ -36,12 +37,16 @@ You only need `go`. All the dependencies will be downloaded during compilation.
 
 ### Keybinds
 
+Each screen has a help menu on the botton. You can toggle the full help menu by pressing `?`.
+Here are the main shorcuts for the torrents screen.
+
+- `h` toggle help
 - `k` `up` move up
 - `j` `down` move down
 - `a` add torrent
-- `u` update list manually (it updates each 2 seconds)
 - `d` remove torrent from transmission (the file will not be deleted from disk)
 - `p` pause/resume download
+- `i` show torrent info
 
 ## Config
 
