@@ -3,7 +3,6 @@ package addtorrent
 import (
 	// "github.com/charmbracelet/bubbles/textinput"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -191,9 +190,9 @@ func (g InputGroup) GetFormData() (*FormDataMsg, error) {
 	if magnet, err = g.getFieldValue(2); err != nil {
 		panic(err)
 	}
-	if _, err := os.Stat(downloadDir); err != nil {
-		return nil, fmt.Errorf("download dir %s doens't exists", downloadDir)
-	}
+	// if _, err := os.Stat(downloadDir); err != nil {
+	// 	return nil, fmt.Errorf("download dir %s doens't exists", downloadDir)
+	// }
 	if !isMagnet(magnet) {
 		return nil, fmt.Errorf("invalid magnet link \"%s\"", magnet)
 	}

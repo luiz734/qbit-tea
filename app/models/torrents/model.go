@@ -117,7 +117,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 
 	case timer.TimeoutMsg:
-        log.Printf("Tick")
+        // log.Printf("Tick")
 		m.updateTimer.Timeout = Timeout
 		m.updateTimer.Init()
 		return m, CmdUpdate(m)
